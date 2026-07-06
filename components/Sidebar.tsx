@@ -6,12 +6,19 @@ import { supabase } from '@/lib/supabase'
 import { useRouter } from 'next/navigation'
 
 const nav = [
-  { href: '/dashboard',           label: 'Overview',       icon: LayoutDashboard },
-  { href: '/dashboard/inbox',     label: 'Inbox',          icon: Mail },
-  { href: '/dashboard/leads',     label: 'Leads',          icon: Users },
-  { href: '/dashboard/notifications', label: 'Alerts',     icon: Bell },
-  { href: '/dashboard/settings',  label: 'Settings',       icon: Settings },
+  { href: '/dashboard',                label: 'Overview', icon: LayoutDashboard },
+  { href: '/dashboard/inbox',          label: 'Inbox',    icon: Mail },
+  { href: '/dashboard/leads',          label: 'Leads',    icon: Users },
+  { href: '/dashboard/notifications',  label: 'Alerts',   icon: Bell },
+  { href: '/dashboard/settings',       label: 'Settings', icon: Settings },
 ]
+
+function isActive(href: string, pathname: string) {
+  // Exact match for /dashboard to prevent it matching every sub-route
+  if (href === '/dashboard') return pathname === '/dashboard'
+  // Prefix match for all other routes
+  return pathname === href || pathname.startsWith(href + '/')
+}
 
 export function Sidebar() {
   const pathname = usePathname()
@@ -48,7 +55,7 @@ export function Sidebar() {
       {/* Nav */}
       <nav style={{ flex: 1, padding: '12px 10px', display: 'flex', flexDirection: 'column', gap: 2 }}>
         {nav.map(({ href, label, icon: Icon }) => {
-          const active = pathname === href || pathname.startsWith(href + '/')
+          const active = isActive(href, pathname)
           return (
             <Link key={href} href={href} style={{
               display: 'flex', alignItems: 'center', gap: 10,
