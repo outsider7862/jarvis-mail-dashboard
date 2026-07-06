@@ -1,0 +1,39 @@
+import { LucideIcon } from 'lucide-react'
+
+interface StatCardProps {
+  label: string
+  value: number | string
+  icon: LucideIcon
+  iconColor?: string
+  sub?: string
+}
+
+export function StatCard({ label, value, icon: Icon, iconColor = '#3b82f6', sub }: StatCardProps) {
+  return (
+    <div style={{
+      background: 'var(--bg-surface)', border: '1px solid var(--border)',
+      borderRadius: 12, padding: '20px 24px',
+      display: 'flex', flexDirection: 'column', gap: 12,
+      transition: 'border-color 0.2s',
+    }}
+      onMouseEnter={e => (e.currentTarget.style.borderColor = 'var(--accent)')}
+      onMouseLeave={e => (e.currentTarget.style.borderColor = 'var(--border)')}
+    >
+      <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
+        <span style={{ color: 'var(--text-secondary)', fontSize: 13, fontWeight: 500 }}>{label}</span>
+        <div style={{
+          width: 36, height: 36, borderRadius: 8,
+          background: `${iconColor}18`, display: 'flex', alignItems: 'center', justifyContent: 'center',
+        }}>
+          <Icon size={18} color={iconColor} strokeWidth={2} />
+        </div>
+      </div>
+      <div>
+        <span style={{ fontSize: 32, fontWeight: 700, color: 'var(--text-primary)', lineHeight: 1 }}>
+          {value}
+        </span>
+        {sub && <p style={{ color: 'var(--text-muted)', fontSize: 12, marginTop: 4 }}>{sub}</p>}
+      </div>
+    </div>
+  )
+}
