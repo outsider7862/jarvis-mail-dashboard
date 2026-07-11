@@ -6,12 +6,17 @@ import { supabase } from '@/lib/supabase'
 import { useRouter } from 'next/navigation'
 
 const nav = [
-  { href: '/dashboard',           label: 'Overview',       icon: LayoutDashboard },
-  { href: '/dashboard/inbox',     label: 'Inbox',          icon: Mail },
-  { href: '/dashboard/leads',     label: 'Leads',          icon: Users },
-  { href: '/dashboard/notifications', label: 'Alerts',     icon: Bell },
-  { href: '/dashboard/settings',  label: 'Settings',       icon: Settings },
+  { href: '/dashboard', label: 'Overview', icon: LayoutDashboard },
+  { href: '/dashboard/inbox', label: 'Inbox', icon: Mail },
+  { href: '/dashboard/leads', label: 'Leads', icon: Users },
+  { href: '/dashboard/notifications', label: 'Alerts', icon: Bell },
+  { href: '/dashboard/settings', label: 'Settings', icon: Settings },
 ]
+
+function isActive(href: string, pathname: string) {
+  if (href === '/dashboard') return pathname === '/dashboard'
+  return pathname === href || pathname.startsWith(href + '/')
+}
 
 export function Sidebar() {
   const pathname = usePathname()
@@ -29,7 +34,6 @@ export function Sidebar() {
       display: 'flex', flexDirection: 'column',
       position: 'sticky', top: 0, height: '100vh',
     }}>
-      {/* Logo */}
       <div style={{
         padding: '24px 20px', display: 'flex', alignItems: 'center', gap: 10,
         borderBottom: '1px solid var(--border)',
@@ -45,10 +49,9 @@ export function Sidebar() {
         </span>
       </div>
 
-      {/* Nav */}
       <nav style={{ flex: 1, padding: '12px 10px', display: 'flex', flexDirection: 'column', gap: 2 }}>
         {nav.map(({ href, label, icon: Icon }) => {
-          const active = pathname === href || pathname.startsWith(href + '/')
+          const active = isActive(href, pathname)
           return (
             <Link key={href} href={href} style={{
               display: 'flex', alignItems: 'center', gap: 10,
@@ -74,7 +77,6 @@ export function Sidebar() {
         })}
       </nav>
 
-      {/* Sign out */}
       <div style={{ padding: '12px 10px', borderTop: '1px solid var(--border)' }}>
         <button onClick={handleSignOut} style={{
           display: 'flex', alignItems: 'center', gap: 10,
