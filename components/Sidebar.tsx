@@ -6,7 +6,6 @@ import { supabase } from '@/lib/supabase'
 import { useRouter } from 'next/navigation'
 
 const nav = [
-<<<<<<< HEAD
   { href: '/dashboard',                label: 'Overview', icon: LayoutDashboard },
   { href: '/dashboard/inbox',          label: 'Inbox',    icon: Mail },
   { href: '/dashboard/leads',          label: 'Leads',    icon: Users },
@@ -18,17 +17,6 @@ function isActive(href: string, pathname: string) {
   // Exact match for /dashboard to prevent it matching every sub-route
   if (href === '/dashboard') return pathname === '/dashboard'
   // Prefix match for all other routes
-=======
-  { href: '/dashboard', label: 'Overview', icon: LayoutDashboard },
-  { href: '/dashboard/inbox', label: 'Inbox', icon: Mail },
-  { href: '/dashboard/leads', label: 'Leads', icon: Users },
-  { href: '/dashboard/notifications', label: 'Alerts', icon: Bell },
-  { href: '/dashboard/settings', label: 'Settings', icon: Settings },
-]
-
-function isActive(href: string, pathname: string) {
-  if (href === '/dashboard') return pathname === '/dashboard'
->>>>>>> 4d44b5accd936a15e0a94731318f1678444dcaa2
   return pathname === href || pathname.startsWith(href + '/')
 }
 

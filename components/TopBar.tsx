@@ -9,7 +9,6 @@ import { EmailAnalysis } from '@/types'
 // ─── Command palette ──────────────────────────────────────────────────────────
 
 const COMMANDS = [
-<<<<<<< HEAD
   { label: 'Go to Overview',       icon: Mail,          href: '/dashboard' },
   { label: 'Go to Inbox',          icon: Mail,          href: '/dashboard/inbox' },
   { label: 'Go to Leads',          icon: Users,         href: '/dashboard/leads' },
@@ -19,30 +18,13 @@ const COMMANDS = [
   { label: 'Filter: Invoices',     icon: Mail,          href: '/dashboard/inbox?category=invoice' },
   { label: 'Filter: Meetings',     icon: CalendarClock, href: '/dashboard/inbox?category=meeting' },
   { label: 'Filter: Phishing',     icon: ShieldAlert,   href: '/dashboard/inbox?category=phishing' },
-=======
-  { label: 'Go to Overview', icon: Mail, href: '/dashboard' },
-  { label: 'Go to Inbox', icon: Mail, href: '/dashboard/inbox' },
-  { label: 'Go to Leads', icon: Users, href: '/dashboard/leads' },
-  { label: 'Go to Alerts', icon: Bell, href: '/dashboard/notifications' },
-  { label: 'Go to Settings', icon: Settings, href: '/dashboard/settings' },
-  { label: 'Filter: Leads', icon: Users, href: '/dashboard/inbox?category=business_lead' },
-  { label: 'Filter: Invoices', icon: Mail, href: '/dashboard/inbox?category=invoice' },
-  { label: 'Filter: Meetings', icon: CalendarClock, href: '/dashboard/inbox?category=meeting' },
-  { label: 'Filter: Phishing', icon: ShieldAlert, href: '/dashboard/inbox?category=phishing' },
->>>>>>> 4d44b5accd936a15e0a94731318f1678444dcaa2
 ]
 
 function CommandPalette({ onClose }: { onClose: () => void }) {
   const [query, setQuery] = useState('')
-<<<<<<< HEAD
   const [idx, setIdx]     = useState(0)
   const router            = useRouter()
   const inputRef          = useRef<HTMLInputElement>(null)
-=======
-  const [idx, setIdx] = useState(0)
-  const router = useRouter()
-  const inputRef = useRef<HTMLInputElement>(null)
->>>>>>> 4d44b5accd936a15e0a94731318f1678444dcaa2
 
   const filtered = COMMANDS.filter(c => c.label.toLowerCase().includes(query.toLowerCase()))
 
@@ -53,11 +35,7 @@ function CommandPalette({ onClose }: { onClose: () => void }) {
 
   function onKey(e: React.KeyboardEvent) {
     if (e.key === 'ArrowDown') { e.preventDefault(); setIdx(i => Math.min(i + 1, filtered.length - 1)) }
-<<<<<<< HEAD
     if (e.key === 'ArrowUp')   { e.preventDefault(); setIdx(i => Math.max(i - 1, 0)) }
-=======
-    if (e.key === 'ArrowUp') { e.preventDefault(); setIdx(i => Math.max(i - 1, 0)) }
->>>>>>> 4d44b5accd936a15e0a94731318f1678444dcaa2
     if (e.key === 'Enter' && filtered[idx]) go(filtered[idx].href)
     if (e.key === 'Escape') onClose()
   }
@@ -147,15 +125,9 @@ function CommandPalette({ onClose }: { onClose: () => void }) {
 // ─── Notification dropdown ────────────────────────────────────────────────────
 
 function NotificationDropdown({ onClose }: { onClose: () => void }) {
-<<<<<<< HEAD
   const [items, setItems]     = useState<EmailAnalysis[]>([])
   const [loading, setLoading] = useState(true)
   const ref                   = useRef<HTMLDivElement>(null)
-=======
-  const [items, setItems] = useState<EmailAnalysis[]>([])
-  const [loading, setLoading] = useState(true)
-  const ref = useRef<HTMLDivElement>(null)
->>>>>>> 4d44b5accd936a15e0a94731318f1678444dcaa2
 
   useEffect(() => {
     supabase.auth.getSession().then(async ({ data }) => {
@@ -231,11 +203,7 @@ function NotificationDropdown({ onClose }: { onClose: () => void }) {
 
 function ProfileDropdown({ email, onClose }: { email: string; onClose: () => void }) {
   const router = useRouter()
-<<<<<<< HEAD
   const ref    = useRef<HTMLDivElement>(null)
-=======
-  const ref = useRef<HTMLDivElement>(null)
->>>>>>> 4d44b5accd936a15e0a94731318f1678444dcaa2
 
   useEffect(() => {
     function handleClick(e: MouseEvent) {
@@ -279,11 +247,7 @@ function ProfileDropdown({ email, onClose }: { email: string; onClose: () => voi
       {/* Menu items */}
       <div style={{ padding: '6px' }}>
         {[
-<<<<<<< HEAD
           { icon: User,     label: 'Profile',  action: () => { router.push('/dashboard/settings'); onClose() } },
-=======
-          { icon: User, label: 'Profile', action: () => { router.push('/dashboard/settings'); onClose() } },
->>>>>>> 4d44b5accd936a15e0a94731318f1678444dcaa2
           { icon: Settings, label: 'Settings', action: () => { router.push('/dashboard/settings'); onClose() } },
         ].map(({ icon: Icon, label, action }) => (
           <button key={label} onClick={action} style={{
@@ -322,19 +286,11 @@ function ProfileDropdown({ email, onClose }: { email: string; onClose: () => voi
 // ─── TopBar ───────────────────────────────────────────────────────────────────
 
 export function TopBar({ title }: { title: string }) {
-<<<<<<< HEAD
   const [email, setEmail]               = useState('')
   const [showPalette, setShowPalette]   = useState(false)
   const [showNotifs, setShowNotifs]     = useState(false)
   const [showProfile, setShowProfile]   = useState(false)
   const [notifCount, setNotifCount]     = useState(0)
-=======
-  const [email, setEmail] = useState('')
-  const [showPalette, setShowPalette] = useState(false)
-  const [showNotifs, setShowNotifs] = useState(false)
-  const [showProfile, setShowProfile] = useState(false)
-  const [notifCount, setNotifCount] = useState(0)
->>>>>>> 4d44b5accd936a15e0a94731318f1678444dcaa2
 
   useEffect(() => {
     supabase.auth.getUser().then(({ data }) => {
