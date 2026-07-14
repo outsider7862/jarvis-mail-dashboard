@@ -54,3 +54,15 @@ export async function getRawEmail(token: string, analysisId: string) {
 export async function getPendingNotifications(token: string) {
   return apiFetch('/api/analyses/notifications/pending', token)
 }
+
+export async function getConnectedAccounts(token: string) {
+  return apiFetch('/api/accounts/connected', token)
+}
+
+export async function startGmailConnection(token: string) {
+  return apiFetch('/api/accounts/connect/gmail', token, { method: 'POST' })
+}
+
+export async function createTrigger(token: string) {
+  return apiFetch('/api/accounts/trigger', token, { method: 'POST' })
+}

@@ -33,6 +33,12 @@ export interface RawEmail {
   received_at: string | null
 }
 
+export interface ConnectedAccountInfo {
+  provider: string
+  email_address: string
+  active: boolean
+}
+
 export interface Lead {
   id: string
   email_analysis_id: string
