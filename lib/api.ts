@@ -47,6 +47,10 @@ export async function updateLeadStatus(token: string, id: string, status: string
   })
 }
 
+export async function getRawEmail(token: string, analysisId: string) {
+  return apiFetch(`/api/analyses/${analysisId}/raw-email`, token)
+}
+
 export async function getPendingNotifications(token: string) {
   return apiFetch('/api/analyses/notifications/pending', token)
 }

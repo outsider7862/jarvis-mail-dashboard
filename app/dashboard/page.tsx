@@ -9,9 +9,9 @@ import { StatCard } from '@/components/ui/StatCard'
 import { Users, Receipt, CalendarClock, ListTodo, ShieldAlert, Clock } from 'lucide-react'
 
 export default function OverviewPage() {
-  const [brief, setBrief]     = useState<MorningBrief | null>(null)
+  const [brief, setBrief] = useState<MorningBrief | null>(null)
   const [loading, setLoading] = useState(true)
-  const [hour, setHour]       = useState(0)
+  const [hour, setHour] = useState(0)
 
   useEffect(() => {
     setHour(new Date().getHours())
@@ -28,7 +28,7 @@ export default function OverviewPage() {
 
   const greeting =
     hour < 12 ? 'Good morning' :
-    hour < 17 ? 'Good afternoon' : 'Good evening'
+      hour < 17 ? 'Good afternoon' : 'Good evening'
 
   return (
     <>
@@ -79,12 +79,12 @@ export default function OverviewPage() {
           </div>
         ) : brief ? (
           <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: 16 }}>
-            <StatCard label="Business Leads"   value={brief.business_leads}   icon={Users}         iconColor="#22c55e" sub="Pending your review" />
-            <StatCard label="Invoices"         value={brief.invoices}         icon={Receipt}       iconColor="#f59e0b" sub="Require action" />
-            <StatCard label="Meetings Today"   value={brief.meetings_today}   icon={CalendarClock} iconColor="#a78bfa" sub="In the last 24h" />
-            <StatCard label="Follow-ups"       value={brief.follow_ups}       icon={ListTodo}      iconColor="#38bdf8" sub="Unresolved items" />
-            <StatCard label="Phishing Alerts"  value={brief.possible_phishing} icon={ShieldAlert}  iconColor="#ef4444" sub="Review carefully" />
-            <StatCard label="Time to clear"    value={`~${brief.estimated_minutes}m`} icon={Clock} iconColor="#3b82f6" sub="Estimated today" />
+            <StatCard label="Business Leads" value={brief.business_leads} icon={Users} iconColor="#22c55e" sub="Pending your review" />
+            <StatCard label="Invoices" value={brief.invoices} icon={Receipt} iconColor="#f59e0b" sub="Require action" />
+            <StatCard label="Meetings Today" value={brief.meetings_today} icon={CalendarClock} iconColor="#a78bfa" sub="In the last 24h" />
+            <StatCard label="Follow-ups" value={brief.follow_ups} icon={ListTodo} iconColor="#38bdf8" sub="Unresolved items" />
+            <StatCard label="Phishing Alerts" value={brief.possible_phishing} icon={ShieldAlert} iconColor="#ef4444" sub="Review carefully" />
+            <StatCard label="Time to clear" value={`~${brief.estimated_minutes}m`} icon={Clock} iconColor="#3b82f6" sub="Estimated today" />
           </div>
         ) : (
           <p style={{ color: 'var(--text-muted)', fontSize: 14 }}>Could not load briefing. Is the backend running?</p>
