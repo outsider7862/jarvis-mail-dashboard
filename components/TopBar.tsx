@@ -1,10 +1,12 @@
 'use client'
-import { useEffect, useRef, useState } from 'react'
+import { useEffect, useRef, useState, useCallback } from 'react'
 import { useRouter } from 'next/navigation'
 import { Bell, Search, X, Mail, Users, CalendarClock, ShieldAlert, LogOut, User, Settings } from 'lucide-react'
 import { supabase } from '@/lib/supabase'
 import { getPendingNotifications } from '@/lib/api'
 import { EmailAnalysis } from '@/types'
+
+// ─── Command palette ──────────────────────────────────────────────────────────
 
 const COMMANDS = [
   { label: 'Go to Overview', icon: Mail, href: '/dashboard' },
@@ -23,6 +25,7 @@ function CommandPalette({ onClose }: { onClose: () => void }) {
   const [idx, setIdx] = useState(0)
   const router = useRouter()
   const inputRef = useRef<HTMLInputElement>(null)
+
   const filtered = COMMANDS.filter(c => c.label.toLowerCase().includes(query.toLowerCase()))
 
   useEffect(() => { inputRef.current?.focus() }, [])
@@ -39,10 +42,13 @@ function CommandPalette({ onClose }: { onClose: () => void }) {
 
   return (
     <>
+      {/* Backdrop */}
       <div onClick={onClose} style={{
         position: 'fixed', inset: 0, background: 'rgba(0,0,0,0.6)',
         zIndex: 50, backdropFilter: 'blur(2px)',
       }} />
+
+      {/* Panel */}
       <div style={{
         position: 'fixed', top: '20%', left: '50%', transform: 'translateX(-50%)',
         width: '100%', maxWidth: 520, zIndex: 51,
@@ -50,6 +56,7 @@ function CommandPalette({ onClose }: { onClose: () => void }) {
         borderRadius: 14, overflow: 'hidden',
         boxShadow: '0 24px 48px rgba(0,0,0,0.5)',
       }}>
+        {/* Search input */}
         <div style={{
           display: 'flex', alignItems: 'center', gap: 10,
           padding: '14px 16px', borderBottom: '1px solid var(--border)',
@@ -65,14 +72,20 @@ function CommandPalette({ onClose }: { onClose: () => void }) {
               color: 'var(--text-primary)', fontSize: 15,
             }}
           />
-          <button onClick={onClose} style={{ background: 'none', border: 'none', cursor: 'pointer', color: 'var(--text-muted)', display: 'flex', padding: 0 }}>
+          <button onClick={onClose} style={{
+            background: 'none', border: 'none', cursor: 'pointer',
+            color: 'var(--text-muted)', display: 'flex', padding: 0,
+          }}>
             <X size={16} />
           </button>
         </div>
 
+        {/* Results */}
         <div style={{ maxHeight: 320, overflowY: 'auto', padding: '6px' }}>
           {filtered.length === 0 ? (
-            <p style={{ padding: '16px', textAlign: 'center', color: 'var(--text-muted)', fontSize: 13 }}>No commands found</p>
+            <p style={{ padding: '16px', textAlign: 'center', color: 'var(--text-muted)', fontSize: 13 }}>
+              No commands found
+            </p>
           ) : filtered.map((cmd, i) => (
             <button key={cmd.href} onClick={() => go(cmd.href)} style={{
               width: '100%', display: 'flex', alignItems: 'center', gap: 12,
@@ -89,12 +102,16 @@ function CommandPalette({ onClose }: { onClose: () => void }) {
           ))}
         </div>
 
-        <div style={{ padding: '8px 16px', borderTop: '1px solid var(--border)', display: 'flex', gap: 16 }}>
+        <div style={{
+          padding: '8px 16px', borderTop: '1px solid var(--border)',
+          display: 'flex', gap: 16,
+        }}>
           {[['↑↓', 'navigate'], ['↵', 'select'], ['esc', 'close']].map(([key, desc]) => (
             <span key={key} style={{ display: 'flex', alignItems: 'center', gap: 5, fontSize: 11, color: 'var(--text-muted)' }}>
               <kbd style={{
                 padding: '1px 6px', borderRadius: 4, fontSize: 11,
-                background: 'var(--bg-overlay)', border: '1px solid var(--border)', color: 'var(--text-secondary)',
+                background: 'var(--bg-overlay)', border: '1px solid var(--border)',
+                color: 'var(--text-secondary)',
               }}>{key}</kbd>
               {desc}
             </span>
@@ -104,6 +121,8 @@ function CommandPalette({ onClose }: { onClose: () => void }) {
     </>
   )
 }
+
+// ─── Notification dropdown ────────────────────────────────────────────────────
 
 function NotificationDropdown({ onClose }: { onClose: () => void }) {
   const [items, setItems] = useState<EmailAnalysis[]>([])
@@ -146,11 +165,16 @@ function NotificationDropdown({ onClose }: { onClose: () => void }) {
           }}>{items.length}</span>
         )}
       </div>
+
       <div style={{ maxHeight: 320, overflowY: 'auto' }}>
         {loading ? (
-          <div style={{ padding: '20px', textAlign: 'center', color: 'var(--text-muted)', fontSize: 13 }}>Loading...</div>
+          <div style={{ padding: '20px', textAlign: 'center', color: 'var(--text-muted)', fontSize: 13 }}>
+            Loading...
+          </div>
         ) : items.length === 0 ? (
-          <div style={{ padding: '24px', textAlign: 'center', color: 'var(--text-muted)', fontSize: 13 }}>No pending alerts</div>
+          <div style={{ padding: '24px', textAlign: 'center', color: 'var(--text-muted)', fontSize: 13 }}>
+            No pending alerts
+          </div>
         ) : items.map(item => (
           <div key={item.id} style={{
             padding: '12px 16px', borderBottom: '1px solid var(--border-subtle)',
@@ -174,6 +198,8 @@ function NotificationDropdown({ onClose }: { onClose: () => void }) {
     </div>
   )
 }
+
+// ─── Profile dropdown ─────────────────────────────────────────────────────────
 
 function ProfileDropdown({ email, onClose }: { email: string; onClose: () => void }) {
   const router = useRouter()
@@ -199,6 +225,7 @@ function ProfileDropdown({ email, onClose }: { email: string; onClose: () => voi
       border: '1px solid var(--border)', borderRadius: 12,
       boxShadow: '0 16px 32px rgba(0,0,0,0.4)', zIndex: 40, overflow: 'hidden',
     }}>
+      {/* User info */}
       <div style={{ padding: '14px 16px', borderBottom: '1px solid var(--border)' }}>
         <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
           <div style={{
@@ -217,6 +244,7 @@ function ProfileDropdown({ email, onClose }: { email: string; onClose: () => voi
         </div>
       </div>
 
+      {/* Menu items */}
       <div style={{ padding: '6px' }}>
         {[
           { icon: User, label: 'Profile', action: () => { router.push('/dashboard/settings'); onClose() } },
@@ -255,6 +283,8 @@ function ProfileDropdown({ email, onClose }: { email: string; onClose: () => voi
   )
 }
 
+// ─── TopBar ───────────────────────────────────────────────────────────────────
+
 export function TopBar({ title }: { title: string }) {
   const [email, setEmail] = useState('')
   const [showPalette, setShowPalette] = useState(false)
@@ -266,6 +296,7 @@ export function TopBar({ title }: { title: string }) {
     supabase.auth.getUser().then(({ data }) => {
       if (data.user?.email) setEmail(data.user.email)
     })
+    // Load unread count for the badge
     supabase.auth.getSession().then(async ({ data }) => {
       if (!data.session) return
       try {
@@ -275,10 +306,18 @@ export function TopBar({ title }: { title: string }) {
     })
   }, [])
 
+  // Global ⌘K / Ctrl+K shortcut
   useEffect(() => {
     function onKeyDown(e: KeyboardEvent) {
-      if ((e.metaKey || e.ctrlKey) && e.key === 'k') { e.preventDefault(); setShowPalette(p => !p) }
-      if (e.key === 'Escape') { setShowPalette(false); setShowNotifs(false); setShowProfile(false) }
+      if ((e.metaKey || e.ctrlKey) && e.key === 'k') {
+        e.preventDefault()
+        setShowPalette(p => !p)
+      }
+      if (e.key === 'Escape') {
+        setShowPalette(false)
+        setShowNotifs(false)
+        setShowProfile(false)
+      }
     }
     window.addEventListener('keydown', onKeyDown)
     return () => window.removeEventListener('keydown', onKeyDown)
@@ -298,6 +337,8 @@ export function TopBar({ title }: { title: string }) {
         <h1 style={{ fontSize: 16, fontWeight: 600, color: 'var(--text-primary)' }}>{title}</h1>
 
         <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
+
+          {/* Search / Command palette trigger */}
           <button onClick={() => setShowPalette(true)} style={{
             display: 'flex', alignItems: 'center', gap: 8,
             padding: '6px 12px', borderRadius: 8,
@@ -316,6 +357,7 @@ export function TopBar({ title }: { title: string }) {
             }}>⌘K</span>
           </button>
 
+          {/* Notification bell */}
           <div style={{ position: 'relative' }}>
             <button onClick={() => { setShowNotifs(p => !p); setShowProfile(false) }} style={{
               width: 36, height: 36, borderRadius: 8, cursor: 'pointer',
@@ -341,14 +383,14 @@ export function TopBar({ title }: { title: string }) {
             {showNotifs && <NotificationDropdown onClose={() => setShowNotifs(false)} />}
           </div>
 
+          {/* Avatar / Profile */}
           <div style={{ position: 'relative' }}>
             <button onClick={() => { setShowProfile(p => !p); setShowNotifs(false) }} style={{
               width: 36, height: 36, borderRadius: '50%',
               background: 'var(--accent)', display: 'flex',
               alignItems: 'center', justifyContent: 'center',
               fontSize: 13, fontWeight: 700, color: '#fff',
-              cursor: 'pointer',
-              border: showProfile ? '2px solid rgba(255,255,255,0.4)' : '2px solid transparent',
+              cursor: 'pointer', border: showProfile ? '2px solid rgba(255,255,255,0.4)' : '2px solid transparent',
               transition: 'border-color 0.15s',
             }}>
               {initials}
@@ -358,6 +400,7 @@ export function TopBar({ title }: { title: string }) {
         </div>
       </header>
 
+      {/* Command palette rendered outside header so it's not clipped */}
       {showPalette && <CommandPalette onClose={() => setShowPalette(false)} />}
     </>
   )

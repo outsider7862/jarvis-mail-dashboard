@@ -20,12 +20,12 @@ const CATEGORIES: { value: string; label: string }[] = [
 ]
 
 export default function InboxPage() {
-  const [emails, setEmails]       = useState<EmailAnalysis[]>([])
-  const [loading, setLoading]     = useState(true)
-  const [category, setCategory]   = useState('')
-  const [priority, setPriority]   = useState('')
-  const [keyword, setKeyword]     = useState('')
-  const [selected, setSelected]   = useState<EmailAnalysis | null>(null)
+  const [emails, setEmails] = useState<EmailAnalysis[]>([])
+  const [loading, setLoading] = useState(true)
+  const [category, setCategory] = useState('')
+  const [priority, setPriority] = useState('')
+  const [keyword, setKeyword] = useState('')
+  const [selected, setSelected] = useState<EmailAnalysis | null>(null)
 
   const load = useCallback(async () => {
     setLoading(true)
@@ -34,7 +34,7 @@ export default function InboxPage() {
     const params: Record<string, string> = {}
     if (category) params.category = category
     if (priority) params.priority = priority
-    if (keyword)  params.keyword  = keyword
+    if (keyword) params.keyword = keyword
     const results = await getAnalyses(data.session.access_token, params)
     setEmails(results)
     setLoading(false)
@@ -163,8 +163,10 @@ export default function InboxPage() {
                     {email.summary}
                   </p>
                   {email.action_required && (
-                    <p style={{ fontSize: 12, color: 'var(--text-muted)', marginTop: 3,
-                      overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
+                    <p style={{
+                      fontSize: 12, color: 'var(--text-muted)', marginTop: 3,
+                      overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap'
+                    }}>
                       ↳ {email.action_required}
                     </p>
                   )}
