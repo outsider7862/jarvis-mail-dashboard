@@ -1,6 +1,7 @@
 'use client'
 export const dynamic = 'force-dynamic'
 import { useEffect, useState } from 'react'
+import { useRouter } from 'next/navigation'
 import { supabase } from '@/lib/supabase'
 import { getMorningBrief } from '@/lib/api'
 import { MorningBrief } from '@/types'
@@ -12,6 +13,7 @@ export default function OverviewPage() {
   const [brief, setBrief] = useState<MorningBrief | null>(null)
   const [loading, setLoading] = useState(true)
   const [hour, setHour] = useState(0)
+  const router = useRouter()
 
   useEffect(() => {
     setHour(new Date().getHours())
@@ -29,6 +31,15 @@ export default function OverviewPage() {
   const greeting =
     hour < 12 ? 'Good morning' :
       hour < 17 ? 'Good afternoon' : 'Good evening'
+
+  const cards = brief ? [
+    { label: 'Business Leads', value: brief.business_leads, icon: Users, iconColor: '#22c55e', sub: 'Pending your review', href: '/dashboard/inbox?category=business_lead' },
+    { label: 'Invoices', value: brief.invoices, icon: Receipt, iconColor: '#f59e0b', sub: 'Require action', href: '/dashboard/inbox?category=invoice' },
+    { label: 'Meetings Today', value: brief.meetings_today, icon: CalendarClock, iconColor: '#a78bfa', sub: 'In the last 24h', href: '/dashboard/inbox?category=meeting' },
+    { label: 'Follow-ups', value: brief.follow_ups, icon: ListTodo, iconColor: '#38bdf8', sub: 'Unresolved items', href: '/dashboard/inbox' },
+    { label: 'Phishing Alerts', value: brief.possible_phishing, icon: ShieldAlert, iconColor: '#ef4444', sub: 'Review carefully', href: '/dashboard/inbox?category=phishing' },
+    { label: 'Time to clear', value: `~${brief.estimated_minutes}m`, icon: Clock, iconColor: '#3b82f6', sub: 'Estimated today', href: '/dashboard/inbox' },
+  ] : []
 
   return (
     <>
@@ -79,12 +90,17 @@ export default function OverviewPage() {
           </div>
         ) : brief ? (
           <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: 16 }}>
-            <StatCard label="Business Leads" value={brief.business_leads} icon={Users} iconColor="#22c55e" sub="Pending your review" />
-            <StatCard label="Invoices" value={brief.invoices} icon={Receipt} iconColor="#f59e0b" sub="Require action" />
-            <StatCard label="Meetings Today" value={brief.meetings_today} icon={CalendarClock} iconColor="#a78bfa" sub="In the last 24h" />
-            <StatCard label="Follow-ups" value={brief.follow_ups} icon={ListTodo} iconColor="#38bdf8" sub="Unresolved items" />
-            <StatCard label="Phishing Alerts" value={brief.possible_phishing} icon={ShieldAlert} iconColor="#ef4444" sub="Review carefully" />
-            <StatCard label="Time to clear" value={`~${brief.estimated_minutes}m`} icon={Clock} iconColor="#3b82f6" sub="Estimated today" />
+            {cards.map(card => (
+              <div key={card.label} onClick={() => router.push(card.href)} style={{ cursor: 'pointer' }}>
+                <StatCard
+                  label={card.label}
+                  value={card.value}
+                  icon={card.icon}
+                  iconColor={card.iconColor}
+                  sub={card.sub}
+                />
+              </div>
+            ))}
           </div>
         ) : (
           <p style={{ color: 'var(--text-muted)', fontSize: 14 }}>Could not load briefing. Is the backend running?</p>

@@ -23,6 +23,14 @@ export interface EmailAnalysis {
   status: 'new' | 'read' | 'actioned' | 'dismissed'
   should_notify: boolean
   created_at: string
+  received_at: string | null
+}
+
+export interface RawEmail {
+  sender: string | null
+  subject: string | null
+  body_text: string | null
+  received_at: string | null
 }
 
 export interface Lead {

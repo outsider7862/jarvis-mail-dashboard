@@ -1,9 +1,10 @@
 'use client'
 export const dynamic = 'force-dynamic'
-import { useEffect, useState, useCallback } from 'react'
+import { Suspense, useEffect, useState, useCallback } from 'react'
+import { useRouter, useSearchParams } from 'next/navigation'
 import { supabase } from '@/lib/supabase'
-import { getAnalyses, updateAnalysisStatus } from '@/lib/api'
-import { EmailAnalysis, Category, Priority } from '@/types'
+import { getAnalyses, updateAnalysisStatus, getRawEmail } from '@/lib/api'
+import { EmailAnalysis, Category, Priority, RawEmail } from '@/types'
 import { TopBar } from '@/components/TopBar'
 import { CategoryBadge, PriorityBadge, StatusBadge } from '@/components/ui/Badge'
 import { CheckCheck, EyeOff, RefreshCw, Filter } from 'lucide-react'
@@ -19,16 +20,20 @@ const CATEGORIES: { value: string; label: string }[] = [
   { value: 'spam', label: 'Spam' },
 ]
 
-export default function InboxPage() {
+function InboxPageInner() {
+  const router = useRouter()
+  const searchParams = useSearchParams()
   const [emails, setEmails] = useState<EmailAnalysis[]>([])
   const [loading, setLoading] = useState(true)
-  const [category, setCategory] = useState('')
+  const [category, setCategory] = useState(() => searchParams.get('category') ?? '')
   const [priority, setPriority] = useState('')
   const [keyword, setKeyword] = useState('')
   const [selected, setSelected] = useState<EmailAnalysis | null>(null)
+  const [rawEmail, setRawEmail] = useState<RawEmail | null>(null)
+  const [rawEmailLoading, setRawEmailLoading] = useState(false)
 
-  const load = useCallback(async () => {
-    setLoading(true)
+  const load = useCallback(async (silent = false) => {
+    if (!silent) setLoading(true)
     const { data } = await supabase.auth.getSession()
     if (!data.session) return
     const params: Record<string, string> = {}
@@ -37,10 +42,46 @@ export default function InboxPage() {
     if (keyword) params.keyword = keyword
     const results = await getAnalyses(data.session.access_token, params)
     setEmails(results)
-    setLoading(false)
+    // Keep the open detail panel in sync (e.g. status changed elsewhere) without resetting selection.
+    setSelected(prev => prev ? results.find((e: EmailAnalysis) => e.id === prev.id) ?? prev : prev)
+    if (!silent) setLoading(false)
   }, [category, priority, keyword])
 
   useEffect(() => { load() }, [load])
+
+  // Auto-refresh the list in the background so new emails show up without a manual reload.
+  useEffect(() => {
+    const interval = setInterval(() => load(true), 12000)
+    return () => clearInterval(interval)
+  }, [load])
+
+  // Deep-link support: a notification click navigates here with ?id=<analysisId>.
+  useEffect(() => {
+    const targetId = searchParams.get('id')
+    if (!targetId || emails.length === 0) return
+    const match = emails.find(e => e.id === targetId)
+    if (match) {
+      setSelected(match)
+      router.replace(category ? `/dashboard/inbox?category=${category}` : '/dashboard/inbox')
+    }
+  }, [searchParams, emails, router, category])
+
+  useEffect(() => {
+    if (!selected) { setRawEmail(null); return }
+    let cancelled = false
+    setRawEmail(null)
+    setRawEmailLoading(true)
+    supabase.auth.getSession().then(async ({ data }) => {
+      if (!data.session) return
+      try {
+        const raw = await getRawEmail(data.session.access_token, selected.id)
+        if (!cancelled) setRawEmail(raw)
+      } finally {
+        if (!cancelled) setRawEmailLoading(false)
+      }
+    })
+    return () => { cancelled = true }
+  }, [selected?.id])
 
   async function markAs(id: string, status: string) {
     const { data } = await supabase.auth.getSession()
@@ -107,7 +148,7 @@ export default function InboxPage() {
                   <option key={p} value={p}>{p.charAt(0).toUpperCase() + p.slice(1)}</option>
                 ))}
               </select>
-              <button onClick={load} style={{
+              <button onClick={() => load()} style={{
                 padding: '7px 10px', borderRadius: 7, cursor: 'pointer',
                 background: 'var(--bg-elevated)', border: '1px solid var(--border)',
                 color: 'var(--text-secondary)', display: 'flex', alignItems: 'center', gap: 4, fontSize: 13,
@@ -152,7 +193,9 @@ export default function InboxPage() {
                       <PriorityBadge priority={email.priority} />
                     </div>
                     <span style={{ fontSize: 11, color: 'var(--text-muted)' }}>
-                      {new Date(email.created_at).toLocaleDateString()}
+                      {new Date(email.received_at ?? email.created_at).toLocaleString(undefined, {
+                        month: 'short', day: 'numeric', hour: 'numeric', minute: '2-digit',
+                      })}
                     </span>
                   </div>
                   <p style={{
@@ -199,6 +242,43 @@ export default function InboxPage() {
             }}>
               <span style={{ fontSize: 11, fontWeight: 600, color: 'var(--text-muted)', letterSpacing: '0.06em' }}>AI SUMMARY</span>
               <p style={{ fontSize: 14, color: 'var(--text-primary)', lineHeight: 1.6 }}>{selected.summary}</p>
+            </div>
+
+            {/* Original email */}
+            <div style={{
+              background: 'var(--bg-surface)', border: '1px solid var(--border)',
+              borderRadius: 10, padding: '18px 20px', display: 'flex', flexDirection: 'column', gap: 10,
+            }}>
+              <span style={{ fontSize: 11, fontWeight: 600, color: 'var(--text-muted)', letterSpacing: '0.06em' }}>ORIGINAL EMAIL</span>
+              {rawEmailLoading ? (
+                <p style={{ fontSize: 13, color: 'var(--text-muted)' }}>Loading original email...</p>
+              ) : rawEmail ? (
+                <>
+                  <div style={{ display: 'flex', flexDirection: 'column', gap: 3, paddingBottom: 10, borderBottom: '1px solid var(--border-subtle)' }}>
+                    <span style={{ fontSize: 14, fontWeight: 600, color: 'var(--text-primary)' }}>
+                      {rawEmail.subject || '(no subject)'}
+                    </span>
+                    <span style={{ fontSize: 12, color: 'var(--text-secondary)' }}>
+                      From: {rawEmail.sender || 'Unknown sender'}
+                    </span>
+                    {rawEmail.received_at && (
+                      <span style={{ fontSize: 12, color: 'var(--text-muted)' }}>
+                        {new Date(rawEmail.received_at).toLocaleString(undefined, {
+                          month: 'short', day: 'numeric', year: 'numeric', hour: 'numeric', minute: '2-digit',
+                        })}
+                      </span>
+                    )}
+                  </div>
+                  <p style={{
+                    fontSize: 13, color: 'var(--text-secondary)', lineHeight: 1.6,
+                    whiteSpace: 'pre-wrap', maxHeight: 320, overflowY: 'auto',
+                  }}>
+                    {rawEmail.body_text || '(no body)'}
+                  </p>
+                </>
+              ) : (
+                <p style={{ fontSize: 13, color: 'var(--text-muted)' }}>Could not load the original email.</p>
+              )}
             </div>
 
             {/* Action / deadline */}
@@ -269,5 +349,13 @@ export default function InboxPage() {
         )}
       </div>
     </>
+  )
+}
+
+export default function InboxPage() {
+  return (
+    <Suspense fallback={<TopBar title="Inbox" />}>
+      <InboxPageInner />
+    </Suspense>
   )
 }

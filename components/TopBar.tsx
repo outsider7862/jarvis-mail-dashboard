@@ -128,6 +128,7 @@ function NotificationDropdown({ onClose }: { onClose: () => void }) {
   const [items, setItems]     = useState<EmailAnalysis[]>([])
   const [loading, setLoading] = useState(true)
   const ref                   = useRef<HTMLDivElement>(null)
+  const router                = useRouter()
 
   useEffect(() => {
     supabase.auth.getSession().then(async ({ data }) => {
@@ -176,10 +177,17 @@ function NotificationDropdown({ onClose }: { onClose: () => void }) {
             No pending alerts
           </div>
         ) : items.map(item => (
-          <div key={item.id} style={{
-            padding: '12px 16px', borderBottom: '1px solid var(--border-subtle)',
-            borderLeft: item.is_phishing ? '3px solid #ef4444' : '3px solid var(--accent)',
-          }}>
+          <div
+            key={item.id}
+            onClick={() => { router.push(`/dashboard/inbox?id=${item.id}`); onClose() }}
+            style={{
+              padding: '12px 16px', borderBottom: '1px solid var(--border-subtle)',
+              borderLeft: item.is_phishing ? '3px solid #ef4444' : '3px solid var(--accent)',
+              cursor: 'pointer', transition: 'background 0.1s',
+            }}
+            onMouseEnter={e => { e.currentTarget.style.background = 'var(--bg-overlay)' }}
+            onMouseLeave={e => { e.currentTarget.style.background = 'transparent' }}
+          >
             <div style={{ display: 'flex', alignItems: 'center', gap: 6, marginBottom: 4 }}>
               {item.is_phishing && <ShieldAlert size={12} color="#ef4444" />}
               <span style={{
