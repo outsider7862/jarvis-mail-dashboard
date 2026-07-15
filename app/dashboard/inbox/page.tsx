@@ -9,24 +9,34 @@ import { TopBar } from '@/components/TopBar'
 import { CategoryBadge, PriorityBadge, StatusBadge } from '@/components/ui/Badge'
 import { CheckCheck, EyeOff, RefreshCw, Filter } from 'lucide-react'
 
-const CATEGORIES: { value: string; label: string }[] = [
-  { value: '', label: 'All' },
-  { value: 'business_lead', label: 'Leads' },
-  { value: 'invoice', label: 'Invoices' },
-  { value: 'meeting', label: 'Meetings' },
-  { value: 'customer_support', label: 'Support' },
-  { value: 'phishing', label: 'Phishing' },
-  { value: 'newsletter', label: 'Newsletters' },
-  { value: 'spam', label: 'Spam' },
-  { value: 'personal', label: 'Personal' },
+const CATEGORIES: { value: string; label: string; param: Record<string, string> }[] = [
+  { value: '',                  label: 'All',         param: {} },
+  { value: 'business_lead',     label: 'Leads',       param: { is_business_lead: 'true' } },
+  { value: 'invoice',           label: 'Invoices',    param: { is_invoice: 'true' } },
+  { value: 'meeting',           label: 'Meetings',    param: { is_meeting: 'true' } },
+  { value: 'customer_support',  label: 'Support',     param: { is_customer_support: 'true' } },
+  { value: 'phishing',          label: 'Phishing',    param: { is_phishing: 'true' } },
+  { value: 'newsletter',        label: 'Newsletters', param: { is_newsletter: 'true' } },
+  { value: 'spam',              label: 'Spam',        param: { is_spam: 'true' } },
+  { value: 'personal',          label: 'Personal',    param: { category: 'personal' } },
 ]
+
+// Flag-based tabs are reachable from multiple entry points (URL query, deep links) —
+// this finds which tab a given search-params object corresponds to, if any.
+function categoryFromSearchParams(sp: URLSearchParams): string {
+  for (const c of CATEGORIES) {
+    const [key, value] = Object.entries(c.param)[0] ?? []
+    if (key && sp.get(key) === value) return c.value
+  }
+  return ''
+}
 
 function InboxPageInner() {
   const router = useRouter()
   const searchParams = useSearchParams()
   const [emails, setEmails] = useState<EmailAnalysis[]>([])
   const [loading, setLoading] = useState(true)
-  const [category, setCategory] = useState(() => searchParams.get('category') ?? '')
+  const [category, setCategory] = useState(() => categoryFromSearchParams(searchParams))
   const [priority, setPriority] = useState('')
   const [keyword, setKeyword] = useState('')
   const [selected, setSelected] = useState<EmailAnalysis | null>(null)
@@ -37,8 +47,8 @@ function InboxPageInner() {
     if (!silent) setLoading(true)
     const { data } = await supabase.auth.getSession()
     if (!data.session) return
-    const params: Record<string, string> = {}
-    if (category) params.category = category
+    const activeCategory = CATEGORIES.find(c => c.value === category)
+    const params: Record<string, string> = { ...activeCategory?.param }
     if (priority) params.priority = priority
     if (keyword) params.keyword = keyword
     const results = await getAnalyses(data.session.access_token, params)
@@ -63,7 +73,9 @@ function InboxPageInner() {
     const match = emails.find(e => e.id === targetId)
     if (match) {
       setSelected(match)
-      router.replace(category ? `/dashboard/inbox?category=${category}` : '/dashboard/inbox')
+      const activeCategory = CATEGORIES.find(c => c.value === category)
+      const qs = new URLSearchParams(activeCategory?.param).toString()
+      router.replace(qs ? `/dashboard/inbox?${qs}` : '/dashboard/inbox')
     }
   }, [searchParams, emails, router, category])
 

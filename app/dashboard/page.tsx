@@ -33,11 +33,11 @@ export default function OverviewPage() {
       hour < 17 ? 'Good afternoon' : 'Good evening'
 
   const cards = brief ? [
-    { label: 'Business Leads', value: brief.business_leads, icon: Users, iconColor: '#22c55e', sub: 'Pending your review', href: '/dashboard/inbox?category=business_lead' },
-    { label: 'Invoices', value: brief.invoices, icon: Receipt, iconColor: '#f59e0b', sub: 'Require action', href: '/dashboard/inbox?category=invoice' },
-    { label: 'Meetings Today', value: brief.meetings_today, icon: CalendarClock, iconColor: '#a78bfa', sub: 'In the last 24h', href: '/dashboard/inbox?category=meeting' },
+    { label: 'Business Leads', value: brief.business_leads, icon: Users, iconColor: '#22c55e', sub: 'Pending your review', href: '/dashboard/inbox?is_business_lead=true' },
+    { label: 'Invoices', value: brief.invoices, icon: Receipt, iconColor: '#f59e0b', sub: 'Require action', href: '/dashboard/inbox?is_invoice=true' },
+    { label: 'Meetings Today', value: brief.meetings_today, icon: CalendarClock, iconColor: '#a78bfa', sub: 'In the last 24h', href: '/dashboard/inbox?is_meeting=true' },
     { label: 'Follow-ups', value: brief.follow_ups, icon: ListTodo, iconColor: '#38bdf8', sub: 'Unresolved items', href: '/dashboard/inbox' },
-    { label: 'Phishing Alerts', value: brief.possible_phishing, icon: ShieldAlert, iconColor: '#ef4444', sub: 'Review carefully', href: '/dashboard/inbox?category=phishing' },
+    { label: 'Phishing Alerts', value: brief.possible_phishing, icon: ShieldAlert, iconColor: '#ef4444', sub: 'Review carefully', href: '/dashboard/inbox?is_phishing=true' },
     { label: 'Time to clear', value: `~${brief.estimated_minutes}m`, icon: Clock, iconColor: '#3b82f6', sub: 'Estimated today', href: '/dashboard/inbox' },
   ] : []
 

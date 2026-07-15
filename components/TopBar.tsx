@@ -14,10 +14,10 @@ const COMMANDS = [
   { label: 'Go to Leads',          icon: Users,         href: '/dashboard/leads' },
   { label: 'Go to Alerts',         icon: Bell,          href: '/dashboard/notifications' },
   { label: 'Go to Settings',       icon: Settings,      href: '/dashboard/settings' },
-  { label: 'Filter: Leads',        icon: Users,         href: '/dashboard/inbox?category=business_lead' },
-  { label: 'Filter: Invoices',     icon: Mail,          href: '/dashboard/inbox?category=invoice' },
-  { label: 'Filter: Meetings',     icon: CalendarClock, href: '/dashboard/inbox?category=meeting' },
-  { label: 'Filter: Phishing',     icon: ShieldAlert,   href: '/dashboard/inbox?category=phishing' },
+  { label: 'Filter: Leads',        icon: Users,         href: '/dashboard/inbox?is_business_lead=true' },
+  { label: 'Filter: Invoices',     icon: Mail,          href: '/dashboard/inbox?is_invoice=true' },
+  { label: 'Filter: Meetings',     icon: CalendarClock, href: '/dashboard/inbox?is_meeting=true' },
+  { label: 'Filter: Phishing',     icon: ShieldAlert,   href: '/dashboard/inbox?is_phishing=true' },
 ]
 
 function CommandPalette({ onClose }: { onClose: () => void }) {
