@@ -23,6 +23,10 @@ export async function getMorningBrief(token: string) {
   return apiFetch('/api/analyses/morning-brief', token)
 }
 
+export async function getNeedsAttention(token: string, limit = 5) {
+  return apiFetch(`/api/analyses/needs-attention?limit=${limit}`, token)
+}
+
 export async function getAnalyses(token: string, params?: Record<string, string>) {
   const qs = params ? '?' + new URLSearchParams(params).toString() : ''
   return apiFetch(`/api/analyses${qs}`, token)
@@ -71,4 +75,8 @@ export async function startGmailConnection(token: string) {
 
 export async function createTrigger(token: string) {
   return apiFetch('/api/accounts/trigger', token, { method: 'POST' })
+}
+
+export async function disconnectGmail(token: string) {
+  return apiFetch('/api/accounts/disconnect/gmail', token, { method: 'POST' })
 }

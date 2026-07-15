@@ -4,6 +4,7 @@ import { useRouter } from 'next/navigation'
 import { Bell, Search, X, Mail, Users, CalendarClock, ShieldAlert, LogOut, User, Settings } from 'lucide-react'
 import { supabase } from '@/lib/supabase'
 import { getPendingNotifications, markNotified } from '@/lib/api'
+import { formatReceived } from '@/lib/format'
 import { EmailAnalysis } from '@/types'
 
 // ─── Command palette ──────────────────────────────────────────────────────────
@@ -219,6 +220,9 @@ function NotificationDropdown({ onClose, onItemOpen, onClearAll, onLoaded }: {
                 color: item.is_phishing ? '#ef4444' : 'var(--accent)',
               }}>
                 {item.category.replace('_', ' ').toUpperCase()}
+              </span>
+              <span style={{ marginLeft: 'auto', fontSize: 11, color: 'var(--text-muted)' }}>
+                {formatReceived(item.received_at ?? item.created_at)}
               </span>
             </div>
             <p style={{ fontSize: 12, color: 'var(--text-secondary)', lineHeight: 1.5 }}>

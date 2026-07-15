@@ -3,7 +3,7 @@ export const dynamic = 'force-dynamic'
 import { Suspense, useEffect, useState } from 'react'
 import { useRouter, useSearchParams } from 'next/navigation'
 import { supabase } from '@/lib/supabase'
-import { getConnectedAccounts, startGmailConnection, createTrigger } from '@/lib/api'
+import { getConnectedAccounts, startGmailConnection, createTrigger, disconnectGmail } from '@/lib/api'
 import { ConnectedAccountInfo } from '@/types'
 import { TopBar } from '@/components/TopBar'
 import { Mail, CheckCircle2, Loader2 } from 'lucide-react'
@@ -15,6 +15,7 @@ function SettingsPageInner() {
   const [accounts, setAccounts] = useState<ConnectedAccountInfo[] | null>(null)
   const [connecting, setConnecting] = useState(false)
   const [finishingConnection, setFinishingConnection] = useState(false)
+  const [disconnectStep, setDisconnectStep] = useState<'idle' | 'confirm' | 'busy'>('idle')
   const [error, setError] = useState('')
 
   useEffect(() => {
@@ -63,6 +64,21 @@ function SettingsPageInner() {
     } catch {
       setError('Could not start the Gmail connection. Try again.')
       setConnecting(false)
+    }
+  }
+
+  async function handleDisconnect() {
+    setError('')
+    setDisconnectStep('busy')
+    try {
+      const { data } = await supabase.auth.getSession()
+      if (!data.session) return
+      await disconnectGmail(data.session.access_token)
+      setAccounts(await getConnectedAccounts(data.session.access_token))
+    } catch {
+      setError('Could not disconnect. Try again.')
+    } finally {
+      setDisconnectStep('idle')
     }
   }
 
@@ -130,12 +146,45 @@ function SettingsPageInner() {
               display: 'flex', alignItems: 'center', gap: 12,
             }}>
               <CheckCircle2 size={20} color="#22c55e" />
-              <div>
+              <div style={{ flex: 1, minWidth: 0 }}>
                 <p style={{ fontSize: 13, fontWeight: 600, color: 'var(--text-primary)' }}>
                   Gmail connected
                 </p>
                 <p style={{ fontSize: 12, color: 'var(--text-muted)' }}>{gmailAccount.email_address}</p>
               </div>
+              {disconnectStep === 'confirm' ? (
+                <div style={{ display: 'flex', gap: 6, flexShrink: 0 }}>
+                  <button onClick={handleDisconnect} style={{
+                    padding: '6px 12px', borderRadius: 7, cursor: 'pointer',
+                    background: 'rgba(239,68,68,0.1)', border: '1px solid rgba(239,68,68,0.3)',
+                    color: '#ef4444', fontSize: 12, fontWeight: 600,
+                  }}>
+                    Confirm disconnect
+                  </button>
+                  <button onClick={() => setDisconnectStep('idle')} style={{
+                    padding: '6px 12px', borderRadius: 7, cursor: 'pointer',
+                    background: 'var(--bg-surface)', border: '1px solid var(--border)',
+                    color: 'var(--text-secondary)', fontSize: 12,
+                  }}>
+                    Cancel
+                  </button>
+                </div>
+              ) : (
+                <button
+                  onClick={() => setDisconnectStep('confirm')}
+                  disabled={disconnectStep === 'busy'}
+                  style={{
+                    padding: '6px 12px', borderRadius: 7, flexShrink: 0,
+                    cursor: disconnectStep === 'busy' ? 'not-allowed' : 'pointer',
+                    background: 'var(--bg-surface)', border: '1px solid var(--border)',
+                    color: 'var(--text-muted)', fontSize: 12, transition: 'all 0.15s',
+                  }}
+                  onMouseEnter={e => { e.currentTarget.style.borderColor = 'rgba(239,68,68,0.4)'; e.currentTarget.style.color = '#ef4444' }}
+                  onMouseLeave={e => { e.currentTarget.style.borderColor = 'var(--border)'; e.currentTarget.style.color = 'var(--text-muted)' }}
+                >
+                  {disconnectStep === 'busy' ? 'Disconnecting...' : 'Disconnect'}
+                </button>
+              )}
             </div>
           ) : (
             <div style={{

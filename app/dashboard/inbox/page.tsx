@@ -7,6 +7,7 @@ import { getAnalyses, updateAnalysisStatus, getRawEmail } from '@/lib/api'
 import { EmailAnalysis, Category, Priority, RawEmail } from '@/types'
 import { TopBar } from '@/components/TopBar'
 import { CategoryBadge, PriorityBadge, StatusBadge } from '@/components/ui/Badge'
+import { formatReceived, senderName } from '@/lib/format'
 import {
   CheckCheck, EyeOff, RefreshCw, Filter, Paperclip, ExternalLink,
   Inbox, Users, Receipt, CalendarClock, LifeBuoy, ShieldCheck, Newspaper, Ban, Heart, SearchX,
@@ -46,16 +47,6 @@ const EMPTY_STATES: Record<string, { icon: LucideIcon; title: string; sub: strin
   newsletter:         { icon: Newspaper,     title: 'No newsletters',       sub: 'Digests and mailing-list content lands here.' },
   spam:               { icon: Ban,           title: 'No spam',              sub: 'Nothing junky in sight.' },
   personal:           { icon: Heart,         title: 'No personal emails',   sub: 'Mail from friends and family shows up here.' },
-}
-
-// Relative time for recent mail ("2h ago" scans faster than a full date); absolute beyond a day.
-function formatReceived(dateStr: string): string {
-  const date = new Date(dateStr)
-  const diffMin = Math.floor((Date.now() - date.getTime()) / 60000)
-  if (diffMin < 1) return 'just now'
-  if (diffMin < 60) return `${diffMin}m ago`
-  if (diffMin < 1440) return `${Math.floor(diffMin / 60)}h ago`
-  return date.toLocaleString(undefined, { month: 'short', day: 'numeric', hour: 'numeric', minute: '2-digit' })
 }
 
 function checkSuspiciousUrl(url: string): boolean {
@@ -147,10 +138,17 @@ function InboxPageInner() {
   const [loading, setLoading] = useState(true)
   const [category, setCategory] = useState(() => categoryFromSearchParams(searchParams))
   const [priority, setPriority] = useState('')
+  const [status, setStatus] = useState('')
   const [keyword, setKeyword] = useState('')
   const [selected, setSelected] = useState<EmailAnalysis | null>(null)
   const [rawEmail, setRawEmail] = useState<RawEmail | null>(null)
   const [rawEmailLoading, setRawEmailLoading] = useState(false)
+  const [toast, setToast] = useState('')
+
+  function showToast(msg: string) {
+    setToast(msg)
+    setTimeout(() => setToast(''), 2200)
+  }
 
   const load = useCallback(async (silent = false) => {
     if (!silent) setLoading(true)
@@ -159,13 +157,14 @@ function InboxPageInner() {
     const activeCategory = CATEGORIES.find(c => c.value === category)
     const params: Record<string, string> = { ...activeCategory?.param }
     if (priority) params.priority = priority
+    if (status) params.status = status
     if (keyword) params.keyword = keyword
     const results = await getAnalyses(data.session.access_token, params)
     setEmails(results)
     // Keep the open detail panel in sync (e.g. status changed elsewhere) without resetting selection.
     setSelected(prev => prev ? results.find((e: EmailAnalysis) => e.id === prev.id) ?? prev : prev)
     if (!silent) setLoading(false)
-  }, [category, priority, keyword])
+  }, [category, priority, status, keyword])
 
   useEffect(() => { load() }, [load])
 
@@ -205,18 +204,39 @@ function InboxPageInner() {
     return () => { cancelled = true }
   }, [selected?.id])
 
-  async function markAs(id: string, status: string) {
+  async function markAs(id: string, newStatus: string) {
     const { data } = await supabase.auth.getSession()
     if (!data.session) return
-    await updateAnalysisStatus(data.session.access_token, id, status)
-    setEmails(prev => prev.map(e => e.id === id ? { ...e, status: status as any } : e))
-    setSelected(prev => prev && prev.id === id ? { ...prev, status: status as any } : prev)
+    await updateAnalysisStatus(data.session.access_token, id, newStatus)
+    setEmails(prev => prev.map(e => e.id === id ? { ...e, status: newStatus as any } : e))
+    setSelected(prev => prev && prev.id === id ? { ...prev, status: newStatus as any } : prev)
+    if (newStatus === 'actioned') showToast('Marked as actioned')
+    if (newStatus === 'dismissed') showToast('Email dismissed')
   }
 
   function openEmail(email: EmailAnalysis) {
     setSelected(email)
     if (email.status === 'new') markAs(email.id, 'read')
   }
+
+  // ↑/↓ moves the selection, Esc closes the detail panel. Skipped while typing.
+  useEffect(() => {
+    function onKeyDown(e: KeyboardEvent) {
+      const tag = (e.target as HTMLElement)?.tagName
+      if (tag === 'INPUT' || tag === 'SELECT' || tag === 'TEXTAREA') return
+      if (e.key === 'Escape') { setSelected(null); return }
+      if (e.key !== 'ArrowDown' && e.key !== 'ArrowUp') return
+      if (emails.length === 0) return
+      e.preventDefault()
+      const idx = selected ? emails.findIndex(em => em.id === selected.id) : -1
+      const next = e.key === 'ArrowDown'
+        ? emails[Math.min(idx + 1, emails.length - 1)]
+        : emails[Math.max(idx - 1, 0)]
+      if (next && next.id !== selected?.id) openEmail(next)
+    }
+    window.addEventListener('keydown', onKeyDown)
+    return () => window.removeEventListener('keydown', onKeyDown)
+  }, [emails, selected])
 
   const filterTabStyle = (active: boolean) => ({
     padding: '5px 12px', borderRadius: 6, fontSize: 12, fontWeight: 500, cursor: 'pointer',
@@ -273,6 +293,16 @@ function InboxPageInner() {
                 <option value="">All priorities</option>
                 {['low', 'medium', 'high', 'urgent'].map(p => (
                   <option key={p} value={p}>{p.charAt(0).toUpperCase() + p.slice(1)}</option>
+                ))}
+              </select>
+              <select value={status} onChange={e => setStatus(e.target.value)} style={{
+                padding: '7px 10px', borderRadius: 7,
+                background: 'var(--bg-elevated)', border: '1px solid var(--border)',
+                color: 'var(--text-secondary)', fontSize: 13, outline: 'none', cursor: 'pointer',
+              }}>
+                <option value="">All statuses</option>
+                {['new', 'read', 'actioned', 'dismissed'].map(s => (
+                  <option key={s} value={s}>{s.charAt(0).toUpperCase() + s.slice(1)}</option>
                 ))}
               </select>
               <button onClick={() => load()} style={{
@@ -356,9 +386,21 @@ function InboxPageInner() {
                       {formatReceived(email.received_at ?? email.created_at)}
                     </span>
                   </div>
+                  {(email.sender || email.subject) && (
+                    <p style={{
+                      fontSize: 13, color: 'var(--text-primary)',
+                      fontWeight: email.status === 'new' ? 600 : 500,
+                      overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap',
+                      marginBottom: 2,
+                    }}>
+                      {email.sender ? senderName(email.sender) : ''}
+                      {email.sender && email.subject ? ' — ' : ''}
+                      {email.subject ?? ''}
+                    </p>
+                  )}
                   <p style={{
-                    fontSize: 13, color: email.status === 'new' ? 'var(--text-primary)' : 'var(--text-secondary)',
-                    fontWeight: email.status === 'new' ? 500 : 400,
+                    fontSize: email.sender || email.subject ? 12 : 13,
+                    color: email.status === 'new' ? 'var(--text-secondary)' : 'var(--text-muted)',
                     overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap',
                   }}>
                     {email.summary}
@@ -413,9 +455,24 @@ function InboxPageInner() {
               ) : rawEmail ? (
                 <>
                   <div style={{ display: 'flex', flexDirection: 'column', gap: 3, paddingBottom: 10, borderBottom: '1px solid var(--border-subtle)' }}>
-                    <span style={{ fontSize: 14, fontWeight: 600, color: 'var(--text-primary)' }}>
-                      {rawEmail.subject || '(no subject)'}
-                    </span>
+                    <div style={{ display: 'flex', alignItems: 'flex-start', justifyContent: 'space-between', gap: 12 }}>
+                      <span style={{ fontSize: 14, fontWeight: 600, color: 'var(--text-primary)' }}>
+                        {rawEmail.subject || '(no subject)'}
+                      </span>
+                      {rawEmail.thread_id && (
+                        <a
+                          href={`https://mail.google.com/mail/u/0/#inbox/${rawEmail.thread_id}`}
+                          target="_blank"
+                          rel="noopener noreferrer"
+                          style={{
+                            display: 'inline-flex', alignItems: 'center', gap: 5, flexShrink: 0,
+                            fontSize: 12, color: 'var(--accent)', textDecoration: 'none',
+                          }}
+                        >
+                          Open in Gmail <ExternalLink size={11} />
+                        </a>
+                      )}
+                    </div>
                     <span style={{ fontSize: 12, color: 'var(--text-secondary)' }}>
                       From: {rawEmail.sender || 'Unknown sender'}
                     </span>
@@ -545,6 +602,21 @@ function InboxPageInner() {
           </div>
         )}
       </div>
+
+      {/* Toast confirmation */}
+      {toast && (
+        <div style={{
+          position: 'fixed', bottom: 24, right: 24, zIndex: 60,
+          display: 'flex', alignItems: 'center', gap: 8,
+          padding: '10px 16px', borderRadius: 10,
+          background: 'var(--bg-elevated)', border: '1px solid var(--border)',
+          boxShadow: '0 8px 24px rgba(0,0,0,0.4)',
+          color: 'var(--text-primary)', fontSize: 13, fontWeight: 500,
+        }}>
+          <CheckCheck size={14} color="#22c55e" />
+          {toast}
+        </div>
+      )}
     </>
   )
 }

@@ -24,6 +24,8 @@ export interface EmailAnalysis {
   should_notify: boolean
   created_at: string
   received_at: string | null
+  sender: string | null
+  subject: string | null
 }
 
 export interface Attachment {
