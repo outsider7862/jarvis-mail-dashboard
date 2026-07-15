@@ -31,6 +31,88 @@ function categoryFromSearchParams(sp: URLSearchParams): string {
   return ''
 }
 
+function checkSuspiciousUrl(url: string): boolean {
+  try {
+    const { hostname } = new URL(url)
+
+    // IP address as hostname
+    if (/^\d{1,3}(\.\d{1,3}){3}$/.test(hostname)) return true
+
+    // Known URL shorteners
+    const shorteners = [
+      'bit.ly', 'tinyurl.com', 'goo.gl', 't.co', 'ow.ly',
+      'short.link', 'rb.gy', 'cutt.ly', 'is.gd', 'buff.ly'
+    ]
+    if (shorteners.some(s => hostname === s || hostname.endsWith('.' + s))) return true
+
+    // Suspicious keywords in hostname
+    const suspiciousKeywords = [
+      'secure-', 'verify-', 'account-', 'login-', 'signin-',
+      'update-', 'confirm-', 'banking-', 'paypal-', 'amazon-',
+      'microsoft-', 'apple-', 'google-', 'support-'
+    ]
+    if (suspiciousKeywords.some(k => hostname.includes(k))) return true
+
+    // Example/test domains
+    if (hostname.endsWith('.example.com') || hostname === 'example.com') return true
+
+    // Excessive subdomains (more than 3 dots in hostname)
+    if ((hostname.match(/\./g) || []).length > 3) return true
+
+    return false
+  } catch {
+    return false
+  }
+}
+
+function renderBodyWithLinks(text: string, threadId: string | null) {
+  // Regex to find URLs in plain text
+  const urlRegex = /(https?:\/\/[^\s\])"]+)/g
+  const parts = text.split(urlRegex)
+
+  return parts.map((part, i) => {
+    if (!urlRegex.test(part)) {
+      // Reset regex lastIndex after test()
+      urlRegex.lastIndex = 0
+      return <span key={i}>{part}</span>
+    }
+    urlRegex.lastIndex = 0
+
+    const isSuspicious = checkSuspiciousUrl(part)
+
+    if (isSuspicious) {
+      return (
+        <span key={i} style={{ display: 'inline-flex', alignItems: 'center', gap: 4 }}>
+          <span style={{
+            background: 'rgba(239,68,68,0.1)', border: '1px solid rgba(239,68,68,0.3)',
+            borderRadius: 4, padding: '1px 6px',
+            color: '#ef4444', fontSize: 12, fontFamily: 'monospace',
+            textDecoration: 'line-through',
+          }}>
+            {part}
+          </span>
+          <span style={{
+            display: 'inline-flex', alignItems: 'center', gap: 3,
+            padding: '1px 6px', borderRadius: 4,
+            background: 'rgba(239,68,68,0.1)', border: '1px solid rgba(239,68,68,0.3)',
+            color: '#ef4444', fontSize: 10, fontWeight: 700,
+          }}>
+            ⚠ SUSPICIOUS
+          </span>
+        </span>
+      )
+    }
+
+    return (
+      <a key={i} href={part} target="_blank" rel="noopener noreferrer" style={{
+        color: 'var(--accent)', fontSize: 13, wordBreak: 'break-all',
+      }}>
+        {part}
+      </a>
+    )
+  })
+}
+
 function InboxPageInner() {
   const router = useRouter()
   const searchParams = useSearchParams()
@@ -320,12 +402,13 @@ function InboxPageInner() {
                     </div>
                   )}
 
-                  <p style={{
-                    fontSize: 13, color: 'var(--text-secondary)', lineHeight: 1.6,
-                    whiteSpace: 'pre-wrap', maxHeight: 320, overflowY: 'auto',
+                  <div style={{
+                    fontSize: 13, color: 'var(--text-secondary)', lineHeight: 1.7,
+                    whiteSpace: 'pre-wrap', wordBreak: 'break-word',
+                    fontFamily: 'inherit', maxHeight: 320, overflowY: 'auto',
                   }}>
-                    {rawEmail.body_text || '(no body)'}
-                  </p>
+                    {rawEmail.body_text ? renderBodyWithLinks(rawEmail.body_text, rawEmail.thread_id) : '(no body)'}
+                  </div>
                 </>
               ) : (
                 <p style={{ fontSize: 13, color: 'var(--text-muted)' }}>Could not load the original email.</p>
