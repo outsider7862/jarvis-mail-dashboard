@@ -55,6 +55,12 @@ export async function getPendingNotifications(token: string) {
   return apiFetch('/api/analyses/notifications/pending', token)
 }
 
+export async function markNotified(token: string, analysisId: string) {
+  return apiFetch(`/api/analyses/notifications/${analysisId}/mark-notified`, token, {
+    method: 'POST',
+  })
+}
+
 export async function getConnectedAccounts(token: string) {
   return apiFetch('/api/accounts/connected', token)
 }

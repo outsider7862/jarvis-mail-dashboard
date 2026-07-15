@@ -3,7 +3,7 @@ import { useEffect, useRef, useState, useCallback } from 'react'
 import { useRouter } from 'next/navigation'
 import { Bell, Search, X, Mail, Users, CalendarClock, ShieldAlert, LogOut, User, Settings } from 'lucide-react'
 import { supabase } from '@/lib/supabase'
-import { getPendingNotifications } from '@/lib/api'
+import { getPendingNotifications, markNotified } from '@/lib/api'
 import { EmailAnalysis } from '@/types'
 
 // ─── Command palette ──────────────────────────────────────────────────────────
@@ -124,7 +124,12 @@ function CommandPalette({ onClose }: { onClose: () => void }) {
 
 // ─── Notification dropdown ────────────────────────────────────────────────────
 
-function NotificationDropdown({ onClose }: { onClose: () => void }) {
+function NotificationDropdown({ onClose, onItemOpen, onClearAll, onLoaded }: {
+  onClose: () => void
+  onItemOpen: (id: string) => void
+  onClearAll: (ids: string[]) => void
+  onLoaded: (count: number) => void
+}) {
   const [items, setItems]     = useState<EmailAnalysis[]>([])
   const [loading, setLoading] = useState(true)
   const ref                   = useRef<HTMLDivElement>(null)
@@ -133,7 +138,11 @@ function NotificationDropdown({ onClose }: { onClose: () => void }) {
   useEffect(() => {
     supabase.auth.getSession().then(async ({ data }) => {
       if (!data.session) return
-      try { setItems(await getPendingNotifications(data.session.access_token)) }
+      try {
+        const results = await getPendingNotifications(data.session.access_token)
+        setItems(results)
+        onLoaded(results.length)
+      }
       finally { setLoading(false) }
     })
   }, [])
@@ -157,13 +166,28 @@ function NotificationDropdown({ onClose }: { onClose: () => void }) {
         padding: '12px 16px', borderBottom: '1px solid var(--border)',
         display: 'flex', alignItems: 'center', justifyContent: 'space-between',
       }}>
-        <span style={{ fontSize: 13, fontWeight: 600, color: 'var(--text-primary)' }}>Alerts</span>
+        <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+          <span style={{ fontSize: 13, fontWeight: 600, color: 'var(--text-primary)' }}>Alerts</span>
+          {items.length > 0 && (
+            <span style={{
+              padding: '1px 7px', borderRadius: 20,
+              background: 'var(--accent-subtle)', border: '1px solid rgba(59,130,246,0.25)',
+              fontSize: 11, fontWeight: 700, color: 'var(--accent)',
+            }}>{items.length}</span>
+          )}
+        </div>
         {items.length > 0 && (
-          <span style={{
-            padding: '1px 7px', borderRadius: 20,
-            background: 'var(--accent-subtle)', border: '1px solid rgba(59,130,246,0.25)',
-            fontSize: 11, fontWeight: 700, color: 'var(--accent)',
-          }}>{items.length}</span>
+          <button
+            onClick={() => { onClearAll(items.map(i => i.id)); setItems([]) }}
+            style={{
+              background: 'none', border: 'none', cursor: 'pointer', padding: 0,
+              fontSize: 12, color: 'var(--text-muted)', transition: 'color 0.15s',
+            }}
+            onMouseEnter={e => e.currentTarget.style.color = 'var(--accent)'}
+            onMouseLeave={e => e.currentTarget.style.color = 'var(--text-muted)'}
+          >
+            Clear all
+          </button>
         )}
       </div>
 
@@ -179,7 +203,7 @@ function NotificationDropdown({ onClose }: { onClose: () => void }) {
         ) : items.map(item => (
           <div
             key={item.id}
-            onClick={() => { router.push(`/dashboard/inbox?id=${item.id}`); onClose() }}
+            onClick={() => { onItemOpen(item.id); router.push(`/dashboard/inbox?id=${item.id}`); onClose() }}
             style={{
               padding: '12px 16px', borderBottom: '1px solid var(--border-subtle)',
               borderLeft: item.is_phishing ? '3px solid #ef4444' : '3px solid var(--accent)',
@@ -314,6 +338,23 @@ export function TopBar({ title }: { title: string }) {
     })
   }, [])
 
+  // Mark alerts as seen (the badge counts pending ones — clearing them is what
+  // makes the count go down). API calls live here, not in the dropdown, so they
+  // survive the dropdown closing/unmounting mid-flight.
+  async function clearNotification(id: string) {
+    setNotifCount(c => Math.max(0, c - 1))
+    const { data } = await supabase.auth.getSession()
+    if (!data.session) return
+    try { await markNotified(data.session.access_token, id) } catch { /* silent */ }
+  }
+
+  async function clearAllNotifications(ids: string[]) {
+    setNotifCount(0)
+    const { data } = await supabase.auth.getSession()
+    if (!data.session) return
+    await Promise.allSettled(ids.map(id => markNotified(data.session!.access_token, id)))
+  }
+
   // Global ⌘K / Ctrl+K shortcut
   useEffect(() => {
     function onKeyDown(e: KeyboardEvent) {
@@ -388,7 +429,14 @@ export function TopBar({ title }: { title: string }) {
                 </span>
               )}
             </button>
-            {showNotifs && <NotificationDropdown onClose={() => setShowNotifs(false)} />}
+            {showNotifs && (
+              <NotificationDropdown
+                onClose={() => setShowNotifs(false)}
+                onItemOpen={clearNotification}
+                onClearAll={clearAllNotifications}
+                onLoaded={setNotifCount}
+              />
+            )}
           </div>
 
           {/* Avatar / Profile */}
