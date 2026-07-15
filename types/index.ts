@@ -1,7 +1,7 @@
 export type Category =
   | 'business_lead' | 'invoice' | 'meeting'
   | 'customer_support' | 'newsletter' | 'spam'
-  | 'phishing' | 'other'
+  | 'phishing' | 'personal' | 'other'
 
 export type Priority = 'low' | 'medium' | 'high' | 'urgent'
 

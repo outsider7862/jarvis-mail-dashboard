@@ -18,6 +18,7 @@ const CATEGORIES: { value: string; label: string }[] = [
   { value: 'phishing', label: 'Phishing' },
   { value: 'newsletter', label: 'Newsletters' },
   { value: 'spam', label: 'Spam' },
+  { value: 'personal', label: 'Personal' },
 ]
 
 function InboxPageInner() {

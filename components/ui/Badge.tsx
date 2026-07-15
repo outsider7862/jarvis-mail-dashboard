@@ -8,6 +8,7 @@ const categoryConfig: Record<string, { label: string; color: string }> = {
   newsletter:       { label: 'Newsletter', color: '#fb923c' },
   spam:             { label: 'Spam',       color: '#71717a' },
   phishing:         { label: 'Phishing',   color: '#ef4444' },
+  personal:         { label: 'Personal',   color: '#ec4899' },
   other:            { label: 'Other',      color: '#71717a' },
 }
 
