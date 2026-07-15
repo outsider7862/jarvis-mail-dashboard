@@ -26,11 +26,19 @@ export interface EmailAnalysis {
   received_at: string | null
 }
 
+export interface Attachment {
+  name: string | null
+  mime_type: string | null
+  size: number | null
+}
+
 export interface RawEmail {
   sender: string | null
   subject: string | null
   body_text: string | null
   received_at: string | null
+  thread_id: string | null
+  attachments: Attachment[]
 }
 
 export interface ConnectedAccountInfo {

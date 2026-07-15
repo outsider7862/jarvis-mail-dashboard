@@ -7,7 +7,7 @@ import { getAnalyses, updateAnalysisStatus, getRawEmail } from '@/lib/api'
 import { EmailAnalysis, Category, Priority, RawEmail } from '@/types'
 import { TopBar } from '@/components/TopBar'
 import { CategoryBadge, PriorityBadge, StatusBadge } from '@/components/ui/Badge'
-import { CheckCheck, EyeOff, RefreshCw, Filter } from 'lucide-react'
+import { CheckCheck, EyeOff, RefreshCw, Filter, Paperclip, ExternalLink } from 'lucide-react'
 
 const CATEGORIES: { value: string; label: string; param: Record<string, string> }[] = [
   { value: '',                  label: 'All',         param: {} },
@@ -282,6 +282,44 @@ function InboxPageInner() {
                       </span>
                     )}
                   </div>
+
+                  {/* Attachments */}
+                  {rawEmail.attachments && rawEmail.attachments.length > 0 && (
+                    <div style={{ display: 'flex', flexDirection: 'column', gap: 8, marginBottom: 12 }}>
+                      <span style={{ fontSize: 11, fontWeight: 600, color: 'var(--text-muted)', letterSpacing: '0.06em' }}>
+                        ATTACHMENTS
+                      </span>
+                      <div style={{ display: 'flex', flexWrap: 'wrap', gap: 8 }}>
+                        {rawEmail.attachments.map((att, i) => (
+                          <a
+                            key={i}
+                            href={`https://mail.google.com/mail/u/0/#inbox/${rawEmail.thread_id}`}
+                            target="_blank"
+                            rel="noopener noreferrer"
+                            style={{
+                              display: 'flex', alignItems: 'center', gap: 8,
+                              padding: '8px 12px', borderRadius: 8, textDecoration: 'none',
+                              background: 'var(--bg-elevated)', border: '1px solid var(--border)',
+                              color: 'var(--text-secondary)', fontSize: 12,
+                              transition: 'border-color 0.15s',
+                            }}
+                            onMouseEnter={e => e.currentTarget.style.borderColor = 'var(--accent)'}
+                            onMouseLeave={e => e.currentTarget.style.borderColor = 'var(--border)'}
+                          >
+                            <Paperclip size={13} color="var(--text-muted)" />
+                            <span>{att.name ?? 'Attachment'}</span>
+                            {att.size && (
+                              <span style={{ color: 'var(--text-muted)', fontSize: 11 }}>
+                                ({Math.round(att.size / 1024)}KB)
+                              </span>
+                            )}
+                            <ExternalLink size={11} color="var(--text-muted)" />
+                          </a>
+                        ))}
+                      </div>
+                    </div>
+                  )}
+
                   <p style={{
                     fontSize: 13, color: 'var(--text-secondary)', lineHeight: 1.6,
                     whiteSpace: 'pre-wrap', maxHeight: 320, overflowY: 'auto',
