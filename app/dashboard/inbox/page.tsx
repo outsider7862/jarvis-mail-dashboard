@@ -7,7 +7,11 @@ import { getAnalyses, updateAnalysisStatus, getRawEmail } from '@/lib/api'
 import { EmailAnalysis, Category, Priority, RawEmail } from '@/types'
 import { TopBar } from '@/components/TopBar'
 import { CategoryBadge, PriorityBadge, StatusBadge } from '@/components/ui/Badge'
-import { CheckCheck, EyeOff, RefreshCw, Filter, Paperclip, ExternalLink } from 'lucide-react'
+import {
+  CheckCheck, EyeOff, RefreshCw, Filter, Paperclip, ExternalLink,
+  Inbox, Users, Receipt, CalendarClock, LifeBuoy, ShieldCheck, Newspaper, Ban, Heart, SearchX,
+  type LucideIcon,
+} from 'lucide-react'
 
 const CATEGORIES: { value: string; label: string; param: Record<string, string> }[] = [
   { value: '',                  label: 'All',         param: {} },
@@ -29,6 +33,29 @@ function categoryFromSearchParams(sp: URLSearchParams): string {
     if (key && sp.get(key) === value) return c.value
   }
   return ''
+}
+
+// Per-tab empty states — an empty Phishing tab is good news and should read like it.
+const EMPTY_STATES: Record<string, { icon: LucideIcon; title: string; sub: string; iconColor?: string }> = {
+  '':                 { icon: Inbox,         title: 'No emails yet',        sub: 'New mail appears here as soon as it arrives.' },
+  business_lead:      { icon: Users,         title: 'No leads right now',   sub: 'Inbound inquiries and referrals will show up here.' },
+  invoice:            { icon: Receipt,       title: 'No invoices',          sub: 'Bills and payment requests will appear here.' },
+  meeting:            { icon: CalendarClock, title: 'No meetings',          sub: 'Emails proposing or confirming meetings land here.' },
+  customer_support:   { icon: LifeBuoy,      title: 'No support requests',  sub: 'Client issues and help requests will show up here.' },
+  phishing:           { icon: ShieldCheck,   title: 'No phishing detected', sub: 'Your inbox looks clean.', iconColor: '#22c55e' },
+  newsletter:         { icon: Newspaper,     title: 'No newsletters',       sub: 'Digests and mailing-list content lands here.' },
+  spam:               { icon: Ban,           title: 'No spam',              sub: 'Nothing junky in sight.' },
+  personal:           { icon: Heart,         title: 'No personal emails',   sub: 'Mail from friends and family shows up here.' },
+}
+
+// Relative time for recent mail ("2h ago" scans faster than a full date); absolute beyond a day.
+function formatReceived(dateStr: string): string {
+  const date = new Date(dateStr)
+  const diffMin = Math.floor((Date.now() - date.getTime()) / 60000)
+  if (diffMin < 1) return 'just now'
+  if (diffMin < 60) return `${diffMin}m ago`
+  if (diffMin < 1440) return `${Math.floor(diffMin / 60)}h ago`
+  return date.toLocaleString(undefined, { month: 'short', day: 'numeric', hour: 'numeric', minute: '2-digit' })
 }
 
 function checkSuspiciousUrl(url: string): boolean {
@@ -154,7 +181,7 @@ function InboxPageInner() {
     if (!targetId || emails.length === 0) return
     const match = emails.find(e => e.id === targetId)
     if (match) {
-      setSelected(match)
+      openEmail(match)
       const activeCategory = CATEGORIES.find(c => c.value === category)
       const qs = new URLSearchParams(activeCategory?.param).toString()
       router.replace(qs ? `/dashboard/inbox?${qs}` : '/dashboard/inbox')
@@ -183,7 +210,12 @@ function InboxPageInner() {
     if (!data.session) return
     await updateAnalysisStatus(data.session.access_token, id, status)
     setEmails(prev => prev.map(e => e.id === id ? { ...e, status: status as any } : e))
-    if (selected?.id === id) setSelected(prev => prev ? { ...prev, status: status as any } : null)
+    setSelected(prev => prev && prev.id === id ? { ...prev, status: status as any } : prev)
+  }
+
+  function openEmail(email: EmailAnalysis) {
+    setSelected(email)
+    if (email.status === 'new') markAs(email.id, 'read')
   }
 
   const filterTabStyle = (active: boolean) => ({
@@ -267,12 +299,42 @@ function InboxPageInner() {
                 <style>{`@keyframes pulse { 0%,100%{opacity:1} 50%{opacity:0.4} }`}</style>
               </div>
             ) : emails.length === 0 ? (
-              <div style={{ padding: 40, textAlign: 'center', color: 'var(--text-muted)', fontSize: 14 }}>
-                No emails found.
-              </div>
+              (keyword || priority) ? (
+                <div style={{
+                  padding: '48px 24px', textAlign: 'center',
+                  display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 10,
+                }}>
+                  <SearchX size={28} color="var(--text-muted)" />
+                  <p style={{ fontSize: 14, fontWeight: 600, color: 'var(--text-primary)' }}>
+                    {keyword ? `No results for “${keyword}”` : 'No emails match your filters'}
+                  </p>
+                  <p style={{ fontSize: 13, color: 'var(--text-muted)' }}>
+                    Try a different search, or clear the filters below.
+                  </p>
+                  <button onClick={() => { setKeyword(''); setPriority('') }} style={{
+                    marginTop: 4, padding: '7px 16px', borderRadius: 7, cursor: 'pointer',
+                    background: 'var(--bg-elevated)', border: '1px solid var(--border)',
+                    color: 'var(--text-secondary)', fontSize: 13,
+                  }}>
+                    Clear filters
+                  </button>
+                </div>
+              ) : (() => {
+                const es = EMPTY_STATES[category] ?? EMPTY_STATES['']
+                return (
+                  <div style={{
+                    padding: '48px 24px', textAlign: 'center',
+                    display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 10,
+                  }}>
+                    <es.icon size={28} color={es.iconColor ?? 'var(--text-muted)'} />
+                    <p style={{ fontSize: 14, fontWeight: 600, color: 'var(--text-primary)' }}>{es.title}</p>
+                    <p style={{ fontSize: 13, color: 'var(--text-muted)' }}>{es.sub}</p>
+                  </div>
+                )
+              })()
             ) : (
               emails.map(email => (
-                <div key={email.id} onClick={() => setSelected(email)} style={{
+                <div key={email.id} onClick={() => openEmail(email)} style={{
                   padding: '14px 20px', cursor: 'pointer',
                   borderBottom: '1px solid var(--border-subtle)',
                   background: selected?.id === email.id ? 'var(--bg-elevated)' : 'transparent',
@@ -287,10 +349,11 @@ function InboxPageInner() {
                       <CategoryBadge category={email.category} />
                       <PriorityBadge priority={email.priority} />
                     </div>
-                    <span style={{ fontSize: 11, color: 'var(--text-muted)' }}>
-                      {new Date(email.received_at ?? email.created_at).toLocaleString(undefined, {
-                        month: 'short', day: 'numeric', hour: 'numeric', minute: '2-digit',
-                      })}
+                    <span
+                      title={new Date(email.received_at ?? email.created_at).toLocaleString()}
+                      style={{ fontSize: 11, color: 'var(--text-muted)', flexShrink: 0 }}
+                    >
+                      {formatReceived(email.received_at ?? email.created_at)}
                     </span>
                   </div>
                   <p style={{
