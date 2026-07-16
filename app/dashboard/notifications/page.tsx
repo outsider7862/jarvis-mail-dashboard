@@ -7,6 +7,7 @@ import { getPendingNotifications, markNotified } from '@/lib/api'
 import { EmailAnalysis } from '@/types'
 import { TopBar } from '@/components/TopBar'
 import { CategoryBadge, PriorityBadge } from '@/components/ui/Badge'
+import { useIsMobile } from '@/lib/useIsMobile'
 import { Bell, ShieldAlert, Users, CalendarClock, X, CheckCheck } from 'lucide-react'
 
 function notifIcon(analysis: EmailAnalysis) {
@@ -20,6 +21,7 @@ export default function NotificationsPage() {
   const [items, setItems]     = useState<EmailAnalysis[]>([])
   const [loading, setLoading] = useState(true)
   const router = useRouter()
+  const isMobile = useIsMobile()
 
   useEffect(() => {
     supabase.auth.getSession().then(async ({ data }) => {
@@ -57,7 +59,7 @@ export default function NotificationsPage() {
   return (
     <>
       <TopBar title="Alerts" />
-      <div style={{ padding: '28px', display: 'flex', flexDirection: 'column', gap: 16 }}>
+      <div style={{ padding: isMobile ? '18px 16px 80px' : '28px', display: 'flex', flexDirection: 'column', gap: 16 }}>
 
         <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
           <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>

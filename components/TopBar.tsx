@@ -5,6 +5,7 @@ import { Bell, Search, X, Mail, Users, CalendarClock, ShieldAlert, LogOut, User,
 import { supabase } from '@/lib/supabase'
 import { getPendingNotifications, markNotified } from '@/lib/api'
 import { formatReceived } from '@/lib/format'
+import { useIsMobile } from '@/lib/useIsMobile'
 import { EmailAnalysis } from '@/types'
 
 // ─── Command palette ──────────────────────────────────────────────────────────
@@ -159,7 +160,9 @@ function NotificationDropdown({ onClose, onItemOpen, onClearAll, onLoaded }: {
   return (
     <div ref={ref} style={{
       position: 'absolute', top: 'calc(100% + 8px)', right: 0,
-      width: 340, background: 'var(--bg-elevated)',
+      // 340px overflows a 375px viewport once the bar's padding is counted.
+      width: 340, maxWidth: 'calc(100vw - 32px)',
+      background: 'var(--bg-elevated)',
       border: '1px solid var(--border)', borderRadius: 12,
       boxShadow: '0 16px 32px rgba(0,0,0,0.4)', zIndex: 40, overflow: 'hidden',
     }}>
@@ -322,6 +325,7 @@ function ProfileDropdown({ email, onClose }: { email: string; onClose: () => voi
 // ─── TopBar ───────────────────────────────────────────────────────────────────
 
 export function TopBar({ title }: { title: string }) {
+  const isMobile = useIsMobile()
   const [email, setEmail]               = useState('')
   const [showPalette, setShowPalette]   = useState(false)
   const [showNotifs, setShowNotifs]     = useState(false)
@@ -382,7 +386,7 @@ export function TopBar({ title }: { title: string }) {
     <>
       <header style={{
         height: 60, display: 'flex', alignItems: 'center',
-        justifyContent: 'space-between', padding: '0 28px',
+        justifyContent: 'space-between', padding: isMobile ? '0 16px' : '0 28px',
         borderBottom: '1px solid var(--border)',
         background: 'var(--bg-surface)',
         position: 'sticky', top: 0, zIndex: 10,
@@ -391,10 +395,14 @@ export function TopBar({ title }: { title: string }) {
 
         <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
 
-          {/* Search / Command palette trigger */}
-          <button onClick={() => setShowPalette(true)} style={{
+          {/* Search / Command palette trigger — collapses to an icon on mobile,
+              where the "⌘K" hint is meaningless and the bar is tight. */}
+          <button onClick={() => setShowPalette(true)} aria-label="Search" style={{
             display: 'flex', alignItems: 'center', gap: 8,
-            padding: '6px 12px', borderRadius: 8,
+            padding: isMobile ? 0 : '6px 12px',
+            width: isMobile ? 36 : undefined, height: isMobile ? 36 : undefined,
+            justifyContent: isMobile ? 'center' : undefined,
+            borderRadius: 8,
             background: 'var(--bg-elevated)', border: '1px solid var(--border)',
             color: 'var(--text-muted)', fontSize: 13, cursor: 'pointer',
             transition: 'border-color 0.15s',
@@ -402,12 +410,16 @@ export function TopBar({ title }: { title: string }) {
             onMouseEnter={e => e.currentTarget.style.borderColor = 'var(--accent)'}
             onMouseLeave={e => e.currentTarget.style.borderColor = 'var(--border)'}
           >
-            <Search size={14} />
-            <span>Search...</span>
-            <span style={{
-              padding: '1px 6px', borderRadius: 4, fontSize: 11,
-              background: 'var(--bg-overlay)', border: '1px solid var(--border)',
-            }}>⌘K</span>
+            <Search size={isMobile ? 16 : 14} />
+            {!isMobile && (
+              <>
+                <span>Search...</span>
+                <span style={{
+                  padding: '1px 6px', borderRadius: 4, fontSize: 11,
+                  background: 'var(--bg-overlay)', border: '1px solid var(--border)',
+                }}>⌘K</span>
+              </>
+            )}
           </button>
 
           {/* Notification bell */}

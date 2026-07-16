@@ -1,17 +1,22 @@
 'use client'
 export const dynamic = 'force-dynamic'
 import { useEffect, useState } from 'react'
+import { useRouter } from 'next/navigation'
 import { supabase } from '@/lib/supabase'
 import { getLeads, updateLeadStatus } from '@/lib/api'
 import { Lead } from '@/types'
 import { TopBar } from '@/components/TopBar'
 import { StatusBadge } from '@/components/ui/Badge'
-import { CheckCircle, XCircle, Building2, Mail, DollarSign, Briefcase } from 'lucide-react'
+import { formatReceived } from '@/lib/format'
+import { useIsMobile } from '@/lib/useIsMobile'
+import { CheckCircle, XCircle, Building2, Mail, DollarSign, Briefcase, Clock, ArrowUpRight } from 'lucide-react'
 
 export default function LeadsPage() {
   const [leads, setLeads]     = useState<Lead[]>([])
   const [loading, setLoading] = useState(true)
   const [filter, setFilter]   = useState('')
+  const router = useRouter()
+  const isMobile = useIsMobile()
 
   useEffect(() => {
     async function load() {
@@ -42,7 +47,7 @@ export default function LeadsPage() {
   return (
     <>
       <TopBar title="Leads" />
-      <div style={{ padding: '28px', display: 'flex', flexDirection: 'column', gap: 20 }}>
+      <div style={{ padding: isMobile ? '18px 16px 80px' : '28px', display: 'flex', flexDirection: 'column', gap: 20 }}>
 
         {/* Filter tabs */}
         <div style={{ display: 'flex', gap: 8 }}>
@@ -97,7 +102,16 @@ export default function LeadsPage() {
                       </div>
                     )}
                   </div>
-                  <StatusBadge status={lead.status} />
+                  <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'flex-end', gap: 5, flexShrink: 0 }}>
+                    <StatusBadge status={lead.status} />
+                    <span
+                      title={new Date(lead.created_at).toLocaleString()}
+                      style={{ display: 'flex', alignItems: 'center', gap: 4, fontSize: 11, color: 'var(--text-muted)' }}
+                    >
+                      <Clock size={11} />
+                      {formatReceived(lead.created_at)}
+                    </span>
+                  </div>
                 </div>
 
                 {/* Details */}
@@ -143,6 +157,23 @@ export default function LeadsPage() {
                     </button>
                   </div>
                 )}
+
+                {/* Jump to the email this lead was extracted from — the card is a
+                    summary, the source thread is where the actual context lives. */}
+                <button
+                  onClick={() => router.push(`/dashboard/inbox?id=${lead.email_analysis_id}`)}
+                  style={{
+                    display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 5,
+                    padding: '7px', borderRadius: 7, cursor: 'pointer', width: '100%',
+                    background: 'transparent', border: '1px solid var(--border)',
+                    color: 'var(--text-muted)', fontSize: 12, fontWeight: 500,
+                    transition: 'all 0.15s',
+                  }}
+                  onMouseEnter={e => { e.currentTarget.style.borderColor = 'var(--accent)'; e.currentTarget.style.color = 'var(--accent)' }}
+                  onMouseLeave={e => { e.currentTarget.style.borderColor = 'var(--border)'; e.currentTarget.style.color = 'var(--text-muted)' }}
+                >
+                  View email <ArrowUpRight size={12} />
+                </button>
               </div>
             ))}
           </div>

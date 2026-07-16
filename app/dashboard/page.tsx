@@ -9,6 +9,7 @@ import { TopBar } from '@/components/TopBar'
 import { StatCard } from '@/components/ui/StatCard'
 import { CategoryBadge, PriorityBadge } from '@/components/ui/Badge'
 import { formatReceived, senderName } from '@/lib/format'
+import { useIsMobile } from '@/lib/useIsMobile'
 import { Users, Receipt, CalendarClock, ListTodo, ShieldAlert, Clock, Mail, ArrowRight, CheckCircle2, Heart } from 'lucide-react'
 
 export default function OverviewPage() {
@@ -18,6 +19,7 @@ export default function OverviewPage() {
   const [loading, setLoading] = useState(true)
   const [hour, setHour] = useState(0)
   const router = useRouter()
+  const isMobile = useIsMobile()
 
   useEffect(() => {
     setHour(new Date().getHours())
@@ -44,6 +46,8 @@ export default function OverviewPage() {
       hour < 17 ? 'Good afternoon' : 'Good evening'
 
   const noInboxConnected = accounts !== null && !accounts.some(a => a.active)
+  // 3 stat cards side by side is unreadable on a phone.
+  const gridCols = isMobile ? '1fr' : 'repeat(3, 1fr)'
 
   const cards = brief ? [
     { label: 'Business Leads', value: brief.business_leads, icon: Users, iconColor: '#22c55e', sub: 'Pending your review', href: '/dashboard/inbox?is_business_lead=true' },
@@ -58,7 +62,10 @@ export default function OverviewPage() {
   return (
     <>
       <TopBar title="Overview" />
-      <div style={{ padding: '32px 28px', display: 'flex', flexDirection: 'column', gap: 28 }}>
+      <div style={{
+        padding: isMobile ? '20px 16px 80px' : '32px 28px',
+        display: 'flex', flexDirection: 'column', gap: isMobile ? 20 : 28,
+      }}>
 
         {/* First-run onboarding — a new account with no inbox has nothing else to do here */}
         {noInboxConnected && (
@@ -100,11 +107,13 @@ export default function OverviewPage() {
         {/* Morning brief header */}
         <div style={{
           background: 'var(--bg-surface)', border: '1px solid var(--border)',
-          borderRadius: 12, padding: '24px 28px',
-          display: 'flex', alignItems: 'center', justifyContent: 'space-between',
+          borderRadius: 12, padding: isMobile ? '20px' : '24px 28px',
+          display: 'flex', alignItems: isMobile ? 'flex-start' : 'center',
+          justifyContent: 'space-between', gap: 14,
+          flexDirection: isMobile ? 'column' : 'row',
         }}>
           <div>
-            <h2 style={{ fontSize: 22, fontWeight: 700, color: 'var(--text-primary)', letterSpacing: '-0.02em' }}>
+            <h2 style={{ fontSize: isMobile ? 19 : 22, fontWeight: 700, color: 'var(--text-primary)', letterSpacing: '-0.02em' }}>
               {greeting}. 👋
             </h2>
             <p style={{ color: 'var(--text-secondary)', fontSize: 14, marginTop: 4 }}>
@@ -129,7 +138,7 @@ export default function OverviewPage() {
 
         {/* Stat cards — Bento grid */}
         {loading ? (
-          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: 16 }}>
+          <div style={{ display: 'grid', gridTemplateColumns: gridCols, gap: 16 }}>
             {Array.from({ length: 7 }).map((_, i) => (
               <div key={i} style={{
                 height: 110, borderRadius: 12,
@@ -140,7 +149,7 @@ export default function OverviewPage() {
             <style>{`@keyframes pulse { 0%,100%{opacity:1} 50%{opacity:0.4} }`}</style>
           </div>
         ) : brief ? (
-          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: 16 }}>
+          <div style={{ display: 'grid', gridTemplateColumns: gridCols, gap: 16 }}>
             {cards.map(card => (
               <div key={card.label} onClick={() => router.push(card.href)} style={{ cursor: 'pointer' }}>
                 <StatCard

@@ -67,6 +67,7 @@ export interface Lead {
   service_requested: string | null
   budget_mentioned: string | null
   status: 'pending' | 'confirmed' | 'rejected'
+  created_at: string
 }
 
 export interface MorningBrief {

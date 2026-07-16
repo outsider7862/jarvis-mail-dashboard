@@ -6,6 +6,7 @@ import { supabase } from '@/lib/supabase'
 import { getConnectedAccounts, startGmailConnection, createTrigger, disconnectGmail, getProfile, updateProfile } from '@/lib/api'
 import { ConnectedAccountInfo, UserProfile } from '@/types'
 import { TopBar } from '@/components/TopBar'
+import { useIsMobile } from '@/lib/useIsMobile'
 import { Mail, CheckCircle2, Loader2, Shield, Eye, Bot, Trash2, Unplug, Check } from 'lucide-react'
 
 const WORK_TYPES = [
@@ -39,6 +40,7 @@ const PRIVACY_POINTS = [
 function SettingsPageInner() {
   const router = useRouter()
   const searchParams = useSearchParams()
+  const isMobile = useIsMobile()
   const [email, setEmail] = useState('')
   const [accounts, setAccounts] = useState<ConnectedAccountInfo[] | null>(null)
   const [connecting, setConnecting] = useState(false)
@@ -156,7 +158,10 @@ function SettingsPageInner() {
   return (
     <>
       <TopBar title="Settings" />
-      <div style={{ padding: '28px', maxWidth: 560, display: 'flex', flexDirection: 'column', gap: 20 }}>
+      <div style={{
+        padding: isMobile ? '18px 16px 80px' : '28px',
+        maxWidth: 560, display: 'flex', flexDirection: 'column', gap: 20,
+      }}>
 
         {/* Account info */}
         <div style={{

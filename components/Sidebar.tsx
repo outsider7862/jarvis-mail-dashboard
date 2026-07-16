@@ -20,7 +20,7 @@ function isActive(href: string, pathname: string) {
   return pathname === href || pathname.startsWith(href + '/')
 }
 
-export function Sidebar() {
+export function Sidebar({ mobile = false, onNavigate }: { mobile?: boolean; onNavigate?: () => void }) {
   const pathname = usePathname()
   const router = useRouter()
 
@@ -31,10 +31,14 @@ export function Sidebar() {
 
   return (
     <aside style={{
-      width: 220, minHeight: '100vh', flexShrink: 0,
+      width: 220, flexShrink: 0,
       background: 'var(--bg-surface)', borderRight: '1px solid var(--border)',
       display: 'flex', flexDirection: 'column',
-      position: 'sticky', top: 0, height: '100vh',
+      // As a drawer it's fixed and floats above the content; on desktop it's a
+      // sticky column in normal flow.
+      ...(mobile
+        ? { position: 'fixed' as const, top: 0, left: 0, bottom: 0, height: '100dvh', zIndex: 60 }
+        : { position: 'sticky' as const, top: 0, height: '100vh', minHeight: '100vh' }),
     }}>
       <div style={{
         padding: '24px 20px', display: 'flex', alignItems: 'center', gap: 10,
@@ -55,9 +59,9 @@ export function Sidebar() {
         {nav.map(({ href, label, icon: Icon }) => {
           const active = isActive(href, pathname)
           return (
-            <Link key={href} href={href} style={{
+            <Link key={href} href={href} onClick={onNavigate} style={{
               display: 'flex', alignItems: 'center', gap: 10,
-              padding: '9px 12px', borderRadius: 8, textDecoration: 'none',
+              padding: mobile ? '12px' : '9px 12px', borderRadius: 8, textDecoration: 'none',
               fontSize: 14, fontWeight: active ? 600 : 400,
               color: active ? 'var(--text-primary)' : 'var(--text-secondary)',
               background: active ? 'var(--bg-elevated)' : 'transparent',

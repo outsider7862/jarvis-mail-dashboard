@@ -1,6 +1,6 @@
 'use client'
 export const dynamic = 'force-dynamic'
-import { Suspense, useEffect, useState, useCallback } from 'react'
+import { Suspense, useEffect, useRef, useState, useCallback } from 'react'
 import { useRouter, useSearchParams } from 'next/navigation'
 import { supabase } from '@/lib/supabase'
 import { getAnalyses, updateAnalysisStatus, getRawEmail } from '@/lib/api'
@@ -8,11 +8,18 @@ import { EmailAnalysis, Category, Priority, RawEmail } from '@/types'
 import { TopBar } from '@/components/TopBar'
 import { CategoryBadge, PriorityBadge, StatusBadge } from '@/components/ui/Badge'
 import { formatReceived, senderName } from '@/lib/format'
+import { useIsMobile } from '@/lib/useIsMobile'
 import {
   CheckCheck, EyeOff, RefreshCw, Filter, Paperclip, ExternalLink,
   Inbox, Users, Receipt, CalendarClock, LifeBuoy, ShieldCheck, Newspaper, Ban, Heart, SearchX,
+  ChevronDown, ArrowLeft,
   type LucideIcon,
 } from 'lucide-react'
+
+const PAGE_SIZE = 50
+// Ceiling on what a background poll re-fetches, so someone who has paged deep
+// doesn't trigger an ever-growing query every 12 seconds.
+const MAX_REFRESH = 200
 
 const CATEGORIES: { value: string; label: string; param: Record<string, string> }[] = [
   { value: '',                  label: 'All',         param: {} },
@@ -134,6 +141,7 @@ function renderBodyWithLinks(text: string, threadId: string | null) {
 function InboxPageInner() {
   const router = useRouter()
   const searchParams = useSearchParams()
+  const isMobile = useIsMobile()
   const [emails, setEmails] = useState<EmailAnalysis[]>([])
   const [loading, setLoading] = useState(true)
   const [category, setCategory] = useState(() => categoryFromSearchParams(searchParams))
@@ -144,27 +152,67 @@ function InboxPageInner() {
   const [rawEmail, setRawEmail] = useState<RawEmail | null>(null)
   const [rawEmailLoading, setRawEmailLoading] = useState(false)
   const [toast, setToast] = useState('')
+  const [showOriginal, setShowOriginal] = useState(false)
+  const [hasMore, setHasMore] = useState(false)
+  const [loadingMore, setLoadingMore] = useState(false)
+  const loadedCountRef = useRef(PAGE_SIZE)
 
   function showToast(msg: string) {
     setToast(msg)
     setTimeout(() => setToast(''), 2200)
   }
 
-  const load = useCallback(async (silent = false) => {
-    if (!silent) setLoading(true)
-    const { data } = await supabase.auth.getSession()
-    if (!data.session) return
+  const buildParams = useCallback(() => {
     const activeCategory = CATEGORIES.find(c => c.value === category)
     const params: Record<string, string> = { ...activeCategory?.param }
     if (priority) params.priority = priority
     if (status) params.status = status
     if (keyword) params.keyword = keyword
-    const results = await getAnalyses(data.session.access_token, params)
+    return params
+  }, [category, priority, status, keyword])
+
+  const load = useCallback(async (silent = false) => {
+    if (!silent) setLoading(true)
+    const { data } = await supabase.auth.getSession()
+    if (!data.session) return
+    // A background poll re-fetches everything currently on screen, so new mail
+    // shows up without collapsing pages the user already loaded. A fresh load
+    // (filter change) resets to a single page.
+    const limit = silent
+      ? Math.min(Math.max(loadedCountRef.current, PAGE_SIZE), MAX_REFRESH)
+      : PAGE_SIZE
+    const results = await getAnalyses(data.session.access_token, {
+      ...buildParams(), limit: String(limit), offset: '0',
+    })
     setEmails(results)
+    loadedCountRef.current = results.length
+    setHasMore(results.length >= limit)
     // Keep the open detail panel in sync (e.g. status changed elsewhere) without resetting selection.
     setSelected(prev => prev ? results.find((e: EmailAnalysis) => e.id === prev.id) ?? prev : prev)
     if (!silent) setLoading(false)
-  }, [category, priority, status, keyword])
+  }, [buildParams])
+
+  async function loadMore() {
+    setLoadingMore(true)
+    try {
+      const { data } = await supabase.auth.getSession()
+      if (!data.session) return
+      const results = await getAnalyses(data.session.access_token, {
+        ...buildParams(), limit: String(PAGE_SIZE), offset: String(emails.length),
+      })
+      setEmails(prev => {
+        // A poll may have refreshed the list mid-request — drop any overlap
+        // rather than rendering the same email twice.
+        const seen = new Set(prev.map(e => e.id))
+        const merged = [...prev, ...results.filter((e: EmailAnalysis) => !seen.has(e.id))]
+        loadedCountRef.current = merged.length
+        return merged
+      })
+      setHasMore(results.length >= PAGE_SIZE)
+    } finally {
+      setLoadingMore(false)
+    }
+  }
 
   useEffect(() => { load() }, [load])
 
@@ -188,6 +236,8 @@ function InboxPageInner() {
   }, [searchParams, emails, router, category])
 
   useEffect(() => {
+    // Collapse the raw email again when moving to a different one.
+    setShowOriginal(false)
     if (!selected) { setRawEmail(null); return }
     let cancelled = false
     setRawEmail(null)
@@ -251,12 +301,16 @@ function InboxPageInner() {
       <TopBar title="Inbox" />
       <div style={{ display: 'flex', flex: 1, overflow: 'hidden', height: 'calc(100vh - 60px)' }}>
 
-        {/* Left: list */}
+        {/* Left: list — on mobile the list and detail are separate full-width
+            views rather than a split pane; 420px of detail next to a list
+            doesn't fit a phone. */}
         <div style={{
-          width: selected ? 420 : '100%', flexShrink: 0,
-          borderRight: selected ? '1px solid var(--border)' : 'none',
-          display: 'flex', flexDirection: 'column', overflow: 'hidden',
-          transition: 'width 0.2s',
+          width: isMobile ? '100%' : (selected ? 420 : '100%'),
+          flexShrink: 0,
+          display: isMobile && selected ? 'none' : 'flex',
+          borderRight: !isMobile && selected ? '1px solid var(--border)' : 'none',
+          flexDirection: 'column', overflow: 'hidden',
+          transition: isMobile ? 'none' : 'width 0.2s',
         }}>
           {/* Filters */}
           <div style={{
@@ -416,41 +470,118 @@ function InboxPageInner() {
                 </div>
               ))
             )}
+
+            {/* Load more — deliberately a button, not infinite scroll: the list
+                auto-refreshes every 12s and would shift under an infinite scroll. */}
+            {!loading && hasMore && (
+              <div style={{ padding: '14px 20px', display: 'flex', justifyContent: 'center' }}>
+                <button onClick={loadMore} disabled={loadingMore} style={{
+                  padding: '8px 18px', borderRadius: 8,
+                  cursor: loadingMore ? 'not-allowed' : 'pointer',
+                  background: 'var(--bg-elevated)', border: '1px solid var(--border)',
+                  color: 'var(--text-secondary)', fontSize: 13, fontWeight: 500,
+                  transition: 'all 0.15s',
+                }}
+                  onMouseEnter={e => { if (!loadingMore) { e.currentTarget.style.borderColor = 'var(--accent)'; e.currentTarget.style.color = 'var(--accent)' } }}
+                  onMouseLeave={e => { e.currentTarget.style.borderColor = 'var(--border)'; e.currentTarget.style.color = 'var(--text-secondary)' }}
+                >
+                  {loadingMore ? 'Loading...' : 'Load more'}
+                </button>
+              </div>
+            )}
           </div>
         </div>
 
         {/* Right: detail panel */}
         {selected && (
-          <div style={{ flex: 1, overflowY: 'auto', padding: '24px 28px', display: 'flex', flexDirection: 'column', gap: 20 }}>
-            {/* Header */}
-            <div style={{ display: 'flex', alignItems: 'flex-start', justifyContent: 'space-between' }}>
+          <div style={{
+            flex: 1, overflowY: 'auto',
+            padding: isMobile ? '16px 16px 32px' : '24px 28px',
+            display: 'flex', flexDirection: 'column', gap: 20,
+          }}>
+            {isMobile && (
+              <button onClick={() => setSelected(null)} style={{
+                display: 'flex', alignItems: 'center', gap: 6, alignSelf: 'flex-start',
+                padding: '8px 12px', borderRadius: 8, cursor: 'pointer',
+                background: 'var(--bg-elevated)', border: '1px solid var(--border)',
+                color: 'var(--text-secondary)', fontSize: 13, fontWeight: 500,
+              }}>
+                <ArrowLeft size={14} /> Back to inbox
+              </button>
+            )}
+            {/* Header — the email's subject is the panel's title, so you know
+                what you're looking at before reading the AI's take on it. */}
+            <div style={{ display: 'flex', flexDirection: 'column', gap: 10 }}>
+              <div style={{ display: 'flex', alignItems: 'flex-start', justifyContent: 'space-between', gap: 12 }}>
+                <h2 style={{
+                  fontSize: 18, fontWeight: 700, color: 'var(--text-primary)',
+                  lineHeight: 1.35, letterSpacing: '-0.01em',
+                }}>
+                  {selected.subject || rawEmail?.subject || '(no subject)'}
+                </h2>
+                {!isMobile && (
+                  <button onClick={() => setSelected(null)} title="Close (Esc)" style={{
+                    background: 'none', border: 'none', cursor: 'pointer', flexShrink: 0,
+                    color: 'var(--text-muted)', fontSize: 18, lineHeight: 1, padding: 2,
+                  }}>✕</button>
+                )}
+              </div>
+
+              <div style={{ display: 'flex', alignItems: 'center', gap: 8, flexWrap: 'wrap' }}>
+                {selected.sender && (
+                  <span style={{ fontSize: 13, color: 'var(--text-secondary)' }}>
+                    {senderName(selected.sender)}
+                  </span>
+                )}
+                <span style={{ fontSize: 12, color: 'var(--text-muted)' }}>
+                  {formatReceived(selected.received_at ?? selected.created_at)}
+                </span>
+              </div>
+
               <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap' }}>
                 <CategoryBadge category={selected.category} />
                 <PriorityBadge priority={selected.priority} />
                 <StatusBadge status={selected.status} />
               </div>
-              <button onClick={() => setSelected(null)} style={{
-                background: 'none', border: 'none', cursor: 'pointer',
-                color: 'var(--text-muted)', fontSize: 18, lineHeight: 1,
-              }}>✕</button>
             </div>
 
-            {/* Summary card */}
+            {/* AI summary — the primary content of this panel, so it gets the
+                accent edge and larger type; the raw email is secondary. */}
+            <div style={{
+              background: 'var(--bg-surface)',
+              border: '1px solid var(--border)', borderLeft: '3px solid var(--accent)',
+              borderRadius: 10, padding: '18px 20px', display: 'flex', flexDirection: 'column', gap: 10,
+            }}>
+              <span style={{ fontSize: 11, fontWeight: 600, color: 'var(--accent)', letterSpacing: '0.06em' }}>AI SUMMARY</span>
+              <p style={{ fontSize: 15, color: 'var(--text-primary)', lineHeight: 1.65 }}>{selected.summary}</p>
+            </div>
+
+            {/* Original email — collapsed by default so a long thread doesn't
+                bury the action/deadline cards below it. */}
             <div style={{
               background: 'var(--bg-surface)', border: '1px solid var(--border)',
               borderRadius: 10, padding: '18px 20px', display: 'flex', flexDirection: 'column', gap: 10,
             }}>
-              <span style={{ fontSize: 11, fontWeight: 600, color: 'var(--text-muted)', letterSpacing: '0.06em' }}>AI SUMMARY</span>
-              <p style={{ fontSize: 14, color: 'var(--text-primary)', lineHeight: 1.6 }}>{selected.summary}</p>
-            </div>
+              <button
+                onClick={() => setShowOriginal(o => !o)}
+                aria-expanded={showOriginal}
+                style={{
+                  display: 'flex', alignItems: 'center', justifyContent: 'space-between',
+                  background: 'none', border: 'none', cursor: 'pointer', padding: 0, width: '100%',
+                }}
+              >
+                <span style={{ fontSize: 11, fontWeight: 600, color: 'var(--text-muted)', letterSpacing: '0.06em' }}>
+                  ORIGINAL EMAIL
+                </span>
+                <span style={{ display: 'flex', alignItems: 'center', gap: 5, fontSize: 12, color: 'var(--text-muted)' }}>
+                  {showOriginal ? 'Hide' : 'Show'}
+                  <ChevronDown size={14} style={{
+                    transform: showOriginal ? 'rotate(180deg)' : 'none', transition: 'transform 0.15s',
+                  }} />
+                </span>
+              </button>
 
-            {/* Original email */}
-            <div style={{
-              background: 'var(--bg-surface)', border: '1px solid var(--border)',
-              borderRadius: 10, padding: '18px 20px', display: 'flex', flexDirection: 'column', gap: 10,
-            }}>
-              <span style={{ fontSize: 11, fontWeight: 600, color: 'var(--text-muted)', letterSpacing: '0.06em' }}>ORIGINAL EMAIL</span>
-              {rawEmailLoading ? (
+              {showOriginal && (rawEmailLoading ? (
                 <p style={{ fontSize: 13, color: 'var(--text-muted)' }}>Loading original email...</p>
               ) : rawEmail ? (
                 <>
@@ -532,7 +663,7 @@ function InboxPageInner() {
                 </>
               ) : (
                 <p style={{ fontSize: 13, color: 'var(--text-muted)' }}>Could not load the original email.</p>
-              )}
+              ))}
             </div>
 
             {/* Action / deadline */}
