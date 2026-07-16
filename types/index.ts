@@ -66,5 +66,6 @@ export interface MorningBrief {
   meetings_today: number
   follow_ups: number
   possible_phishing: number
+  personal: number
   estimated_minutes: number
 }

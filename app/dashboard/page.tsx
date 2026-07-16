@@ -9,7 +9,7 @@ import { TopBar } from '@/components/TopBar'
 import { StatCard } from '@/components/ui/StatCard'
 import { CategoryBadge, PriorityBadge } from '@/components/ui/Badge'
 import { formatReceived, senderName } from '@/lib/format'
-import { Users, Receipt, CalendarClock, ListTodo, ShieldAlert, Clock, Mail, ArrowRight, CheckCircle2 } from 'lucide-react'
+import { Users, Receipt, CalendarClock, ListTodo, ShieldAlert, Clock, Mail, ArrowRight, CheckCircle2, Heart } from 'lucide-react'
 
 export default function OverviewPage() {
   const [brief, setBrief] = useState<MorningBrief | null>(null)
@@ -51,6 +51,7 @@ export default function OverviewPage() {
     { label: 'Meetings Today', value: brief.meetings_today, icon: CalendarClock, iconColor: '#a78bfa', sub: 'In the last 24h', href: '/dashboard/inbox?is_meeting=true' },
     { label: 'Follow-ups', value: brief.follow_ups, icon: ListTodo, iconColor: '#38bdf8', sub: 'Unresolved items', href: '/dashboard/inbox' },
     { label: 'Phishing Alerts', value: brief.possible_phishing, icon: ShieldAlert, iconColor: '#ef4444', sub: 'Review carefully', href: '/dashboard/inbox?is_phishing=true' },
+    { label: 'Personal', value: brief.personal, icon: Heart, iconColor: '#ec4899', sub: 'Friends & family', href: '/dashboard/inbox?category=personal' },
     { label: 'Time to clear', value: `~${brief.estimated_minutes}m`, icon: Clock, iconColor: '#3b82f6', sub: 'Estimated today', href: '/dashboard/inbox' },
   ] : []
 
@@ -129,7 +130,7 @@ export default function OverviewPage() {
         {/* Stat cards — Bento grid */}
         {loading ? (
           <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: 16 }}>
-            {Array.from({ length: 6 }).map((_, i) => (
+            {Array.from({ length: 7 }).map((_, i) => (
               <div key={i} style={{
                 height: 110, borderRadius: 12,
                 background: 'var(--bg-surface)', border: '1px solid var(--border)',
