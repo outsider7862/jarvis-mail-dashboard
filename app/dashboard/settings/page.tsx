@@ -3,10 +3,38 @@ export const dynamic = 'force-dynamic'
 import { Suspense, useEffect, useState } from 'react'
 import { useRouter, useSearchParams } from 'next/navigation'
 import { supabase } from '@/lib/supabase'
-import { getConnectedAccounts, startGmailConnection, createTrigger, disconnectGmail } from '@/lib/api'
-import { ConnectedAccountInfo } from '@/types'
+import { getConnectedAccounts, startGmailConnection, createTrigger, disconnectGmail, getProfile, updateProfile } from '@/lib/api'
+import { ConnectedAccountInfo, UserProfile } from '@/types'
 import { TopBar } from '@/components/TopBar'
-import { Mail, CheckCircle2, Loader2 } from 'lucide-react'
+import { Mail, CheckCircle2, Loader2, Shield, Eye, Bot, Trash2, Unplug, Check } from 'lucide-react'
+
+const WORK_TYPES = [
+  { value: 'agency', label: 'Agency' },
+  { value: 'freelancer', label: 'Freelancer' },
+  { value: 'contractor', label: 'Contractor' },
+  { value: 'consultant', label: 'Consultant' },
+  { value: 'other', label: 'Other' },
+]
+const EMAIL_USES = [
+  { value: 'client communication', label: 'Client Communication' },
+  { value: 'sales & leads', label: 'Sales & Leads' },
+  { value: 'project management', label: 'Project Management' },
+  { value: 'customer support', label: 'Customer Support' },
+  { value: 'mixed', label: 'Mixed' },
+]
+const TONES = [
+  { value: 'formal', label: 'Formal' },
+  { value: 'friendly', label: 'Friendly' },
+  { value: 'concise', label: 'Concise' },
+  { value: 'professional', label: 'Professional' },
+]
+const PRIVACY_POINTS = [
+  { icon: Shield, text: 'Your emails are processed only to provide AI features.' },
+  { icon: Eye, text: 'We do not manually read your emails — ever.' },
+  { icon: Bot, text: 'AI analysis is performed automatically and privately.' },
+  { icon: Trash2, text: 'All email data is automatically deleted after 30 days.' },
+  { icon: Unplug, text: 'You can disconnect Gmail at any time from Settings.' },
+]
 
 function SettingsPageInner() {
   const router = useRouter()
@@ -17,12 +45,53 @@ function SettingsPageInner() {
   const [finishingConnection, setFinishingConnection] = useState(false)
   const [disconnectStep, setDisconnectStep] = useState<'idle' | 'confirm' | 'busy'>('idle')
   const [error, setError] = useState('')
+  const [profile, setProfile] = useState<UserProfile | null>(null)
+  const [savingProfile, setSavingProfile] = useState(false)
+  const [profileSaved, setProfileSaved] = useState(false)
 
   useEffect(() => {
     supabase.auth.getUser().then(({ data }) => {
       if (data.user?.email) setEmail(data.user.email)
     })
   }, [])
+
+  useEffect(() => {
+    supabase.auth.getSession().then(async ({ data }) => {
+      if (!data.session) return
+      try {
+        setProfile(await getProfile(data.session.access_token))
+      } catch { /* leave null; section shows a loader */ }
+    })
+  }, [])
+
+  function setField(key: keyof UserProfile, value: string) {
+    setProfile(prev => prev ? { ...prev, [key]: value } : prev)
+    setProfileSaved(false)
+  }
+
+  async function saveProfile() {
+    if (!profile) return
+    setError('')
+    setSavingProfile(true)
+    try {
+      const { data } = await supabase.auth.getSession()
+      if (!data.session) return
+      const updated = await updateProfile(data.session.access_token, {
+        display_name: profile.display_name || null,
+        work_type: profile.work_type || null,
+        email_use: profile.email_use || null,
+        preferred_tone: profile.preferred_tone || null,
+        custom_instructions: profile.custom_instructions || null,
+      })
+      setProfile(updated)
+      setProfileSaved(true)
+      setTimeout(() => setProfileSaved(false), 2500)
+    } catch {
+      setError('Could not save your profile. Try again.')
+    } finally {
+      setSavingProfile(false)
+    }
+  }
 
   useEffect(() => {
     supabase.auth.getSession().then(async ({ data }) => {
@@ -112,6 +181,87 @@ function SettingsPageInner() {
               <p style={{ fontSize: 12, color: 'var(--text-muted)' }}>Supabase Auth</p>
             </div>
           </div>
+        </div>
+
+        {/* Profile — feeds the AI's summaries */}
+        <div style={{
+          background: 'var(--bg-surface)', border: '1px solid var(--border)',
+          borderRadius: 12, padding: '20px 24px',
+          display: 'flex', flexDirection: 'column', gap: 16,
+        }}>
+          <div>
+            <h3 style={{ fontSize: 14, fontWeight: 600, color: 'var(--text-primary)' }}>Profile</h3>
+            <p style={{ fontSize: 12, color: 'var(--text-muted)', marginTop: 2 }}>
+              JARVIS uses this to tailor how it summarizes your email.
+            </p>
+          </div>
+
+          {profile === null ? (
+            <p style={{ fontSize: 13, color: 'var(--text-muted)' }}>Loading...</p>
+          ) : (
+            <>
+              <div style={{ display: 'flex', flexDirection: 'column', gap: 6 }}>
+                <label style={fieldLabel}>Display name</label>
+                <input
+                  value={profile.display_name ?? ''}
+                  onChange={e => setField('display_name', e.target.value)}
+                  placeholder="Your name"
+                  style={fieldInput}
+                />
+              </div>
+
+              <div style={{ display: 'flex', flexDirection: 'column', gap: 6 }}>
+                <label style={fieldLabel}>Work type</label>
+                <select value={profile.work_type ?? ''} onChange={e => setField('work_type', e.target.value)} style={fieldInput}>
+                  <option value="">Not set</option>
+                  {WORK_TYPES.map(o => <option key={o.value} value={o.value}>{o.label}</option>)}
+                </select>
+              </div>
+
+              <div style={{ display: 'flex', flexDirection: 'column', gap: 6 }}>
+                <label style={fieldLabel}>Email use</label>
+                <select value={profile.email_use ?? ''} onChange={e => setField('email_use', e.target.value)} style={fieldInput}>
+                  <option value="">Not set</option>
+                  {EMAIL_USES.map(o => <option key={o.value} value={o.value}>{o.label}</option>)}
+                </select>
+              </div>
+
+              <div style={{ display: 'flex', flexDirection: 'column', gap: 6 }}>
+                <label style={fieldLabel}>Preferred tone</label>
+                <select value={profile.preferred_tone ?? ''} onChange={e => setField('preferred_tone', e.target.value)} style={fieldInput}>
+                  <option value="">Not set</option>
+                  {TONES.map(o => <option key={o.value} value={o.value}>{o.label}</option>)}
+                </select>
+              </div>
+
+              <div style={{ display: 'flex', flexDirection: 'column', gap: 6 }}>
+                <label style={fieldLabel}>Custom instructions</label>
+                <textarea
+                  value={profile.custom_instructions ?? ''}
+                  onChange={e => setField('custom_instructions', e.target.value)}
+                  placeholder="Anything JARVIS should know about how you like your emails?"
+                  rows={3}
+                  style={{ ...fieldInput, resize: 'vertical', lineHeight: 1.5, fontFamily: 'inherit' }}
+                />
+              </div>
+
+              <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
+                <button onClick={saveProfile} disabled={savingProfile} style={{
+                  padding: '9px 18px', borderRadius: 8, border: 'none',
+                  cursor: savingProfile ? 'not-allowed' : 'pointer',
+                  background: 'var(--accent)', color: '#fff', fontSize: 13, fontWeight: 600,
+                  opacity: savingProfile ? 0.6 : 1,
+                }}>
+                  {savingProfile ? 'Saving...' : 'Save profile'}
+                </button>
+                {profileSaved && (
+                  <span style={{ display: 'flex', alignItems: 'center', gap: 5, fontSize: 12, color: '#22c55e' }}>
+                    <Check size={14} /> Saved
+                  </span>
+                )}
+              </div>
+            </>
+          )}
         </div>
 
         {/* Connected inboxes */}
@@ -210,9 +360,36 @@ function SettingsPageInner() {
             <p style={{ fontSize: 12, color: '#ef4444' }}>{error}</p>
           )}
         </div>
+
+        {/* Privacy — persistent reminder of what was shown at onboarding */}
+        <div style={{
+          background: 'var(--bg-surface)', border: '1px solid var(--border)',
+          borderRadius: 12, padding: '20px 24px',
+          display: 'flex', flexDirection: 'column', gap: 14,
+        }}>
+          <h3 style={{ fontSize: 14, fontWeight: 600, color: 'var(--text-primary)' }}>Privacy</h3>
+          <div style={{ display: 'flex', flexDirection: 'column', gap: 10 }}>
+            {PRIVACY_POINTS.map(({ icon: Icon, text }, i) => (
+              <div key={i} style={{ display: 'flex', alignItems: 'flex-start', gap: 10 }}>
+                <Icon size={14} color="var(--text-muted)" style={{ marginTop: 2, flexShrink: 0 }} />
+                <p style={{ fontSize: 12, color: 'var(--text-muted)', lineHeight: 1.5 }}>{text}</p>
+              </div>
+            ))}
+          </div>
+        </div>
       </div>
     </>
   )
+}
+
+const fieldLabel: React.CSSProperties = {
+  fontSize: 12, fontWeight: 500, color: 'var(--text-secondary)',
+}
+
+const fieldInput: React.CSSProperties = {
+  width: '100%', padding: '9px 12px', borderRadius: 7,
+  background: 'var(--bg-elevated)', border: '1px solid var(--border)',
+  color: 'var(--text-primary)', fontSize: 13, outline: 'none',
 }
 
 export default function SettingsPage() {

@@ -4,6 +4,8 @@
  * so the backend can verify the user.
  */
 
+import { UserProfile } from '@/types'
+
 const API_BASE = process.env.NEXT_PUBLIC_API_URL ?? 'http://localhost:8000'
 
 async function apiFetch(path: string, token: string, init?: RequestInit) {
@@ -79,4 +81,15 @@ export async function createTrigger(token: string) {
 
 export async function disconnectGmail(token: string) {
   return apiFetch('/api/accounts/disconnect/gmail', token, { method: 'POST' })
+}
+
+export async function getProfile(token: string) {
+  return apiFetch('/api/profile', token)
+}
+
+export async function updateProfile(token: string, data: Partial<UserProfile>) {
+  return apiFetch('/api/profile', token, {
+    method: 'PATCH',
+    body: JSON.stringify(data),
+  })
 }

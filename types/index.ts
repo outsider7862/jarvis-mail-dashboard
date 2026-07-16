@@ -49,6 +49,15 @@ export interface ConnectedAccountInfo {
   active: boolean
 }
 
+export interface UserProfile {
+  display_name: string | null
+  work_type: string | null
+  email_use: string | null
+  preferred_tone: string | null
+  custom_instructions: string | null
+  onboarding_complete: boolean
+}
+
 export interface Lead {
   id: string
   email_analysis_id: string
