@@ -183,7 +183,6 @@ function SettingsPageInner() {
               <p style={{ fontSize: 14, fontWeight: 600, color: 'var(--text-primary)' }}>
                 {email || 'Loading...'}
               </p>
-              <p style={{ fontSize: 12, color: 'var(--text-muted)' }}>Supabase Auth</p>
             </div>
           </div>
         </div>

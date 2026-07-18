@@ -14,3 +14,12 @@ export function senderName(sender: string): string {
   const match = sender.match(/^\s*"?([^"<]+?)"?\s*</)
   return match ? match[1].trim() : sender
 }
+
+// "Jane Doe <jane@x.com>" → "jane@x.com"; used for Gmail's compose `to=` param,
+// which wants a bare address rather than the display-name form.
+export function senderEmail(sender: string): string {
+  const angled = sender.match(/<([^>]+)>/)
+  if (angled) return angled[1].trim()
+  const bare = sender.match(/[^\s<>,;]+@[^\s<>,;]+/)
+  return bare ? bare[0] : sender.trim()
+}

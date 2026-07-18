@@ -49,6 +49,16 @@ export interface ConnectedAccountInfo {
   active: boolean
 }
 
+export interface ChatTurn {
+  role: 'user' | 'assistant'
+  content: string
+}
+
+export interface ReplyDraft {
+  subject: string
+  body: string
+}
+
 export interface UserProfile {
   display_name: string | null
   work_type: string | null

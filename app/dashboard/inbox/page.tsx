@@ -7,6 +7,7 @@ import { getAnalyses, updateAnalysisStatus, getRawEmail } from '@/lib/api'
 import { EmailAnalysis, Category, Priority, RawEmail } from '@/types'
 import { TopBar } from '@/components/TopBar'
 import { CategoryBadge, PriorityBadge, StatusBadge } from '@/components/ui/Badge'
+import { ReplyPanel } from '@/components/ReplyPanel'
 import { formatReceived, senderName } from '@/lib/format'
 import { useIsMobile } from '@/lib/useIsMobile'
 import {
@@ -710,6 +711,14 @@ function InboxPageInner() {
                 </span>
               </div>
             </div>
+
+            {/* Reply — keyed on the email id so every field resets when you
+                move to a different email. */}
+            <ReplyPanel
+              key={selected.id}
+              analysis={selected}
+              sender={selected.sender ?? rawEmail?.sender ?? null}
+            />
 
             {/* Actions */}
             <div style={{ display: 'flex', gap: 8 }}>

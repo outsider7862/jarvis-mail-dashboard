@@ -4,7 +4,7 @@
  * so the backend can verify the user.
  */
 
-import { UserProfile } from '@/types'
+import { ChatTurn, UserProfile } from '@/types'
 
 const API_BASE = process.env.NEXT_PUBLIC_API_URL ?? 'http://localhost:8000'
 
@@ -81,6 +81,53 @@ export async function createTrigger(token: string) {
 
 export async function disconnectGmail(token: string) {
   return apiFetch('/api/accounts/disconnect/gmail', token, { method: 'POST' })
+}
+
+export async function getQuickActions(token: string, analysisId: string) {
+  return apiFetch(`/api/reply/${analysisId}/quick-actions`, token)
+}
+
+export async function draftReply(
+  token: string,
+  analysisId: string,
+  intent: string,
+  conversationHistory?: ChatTurn[],
+) {
+  return apiFetch('/api/reply/draft', token, {
+    method: 'POST',
+    body: JSON.stringify({ analysis_id: analysisId, intent, conversation_history: conversationHistory }),
+  })
+}
+
+export async function rewriteDraft(
+  token: string,
+  analysisId: string,
+  currentDraft: string,
+  rewriteInstruction: string,
+  conversationHistory?: ChatTurn[],
+) {
+  return apiFetch('/api/reply/rewrite', token, {
+    method: 'POST',
+    body: JSON.stringify({
+      analysis_id: analysisId,
+      current_draft: currentDraft,
+      rewrite_instruction: rewriteInstruction,
+      conversation_history: conversationHistory,
+    }),
+  })
+}
+
+export async function saveReplyFeedback(token: string, data: {
+  analysis_id: string
+  intent: string
+  category: string
+  original_draft: string
+  edited_draft: string
+}) {
+  return apiFetch('/api/reply/feedback', token, {
+    method: 'POST',
+    body: JSON.stringify(data),
+  })
 }
 
 export async function getProfile(token: string) {
