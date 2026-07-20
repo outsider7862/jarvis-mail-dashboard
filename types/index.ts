@@ -40,6 +40,8 @@ export interface RawEmail {
   body_text: string | null
   received_at: string | null
   thread_id: string | null
+  message_id: string | null
+  connected_email: string | null
   attachments: Attachment[]
 }
 

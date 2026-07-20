@@ -8,7 +8,7 @@ import { EmailAnalysis, Category, Priority, RawEmail } from '@/types'
 import { TopBar } from '@/components/TopBar'
 import { CategoryBadge, PriorityBadge, StatusBadge } from '@/components/ui/Badge'
 import { ReplyPanel } from '@/components/ReplyPanel'
-import { formatReceived, senderName } from '@/lib/format'
+import { formatReceived, senderName, gmailInboxUrl } from '@/lib/format'
 import { useIsMobile } from '@/lib/useIsMobile'
 import {
   CheckCheck, EyeOff, RefreshCw, Filter, Paperclip, ExternalLink,
@@ -591,9 +591,9 @@ function InboxPageInner() {
                       <span style={{ fontSize: 14, fontWeight: 600, color: 'var(--text-primary)' }}>
                         {rawEmail.subject || '(no subject)'}
                       </span>
-                      {rawEmail.thread_id && (
+                      {(rawEmail.message_id || rawEmail.thread_id) && (
                         <a
-                          href={`https://mail.google.com/mail/u/0/#inbox/${rawEmail.thread_id}`}
+                          href={gmailInboxUrl(rawEmail.message_id, rawEmail.thread_id, rawEmail.connected_email)}
                           target="_blank"
                           rel="noopener noreferrer"
                           style={{
@@ -627,7 +627,7 @@ function InboxPageInner() {
                         {rawEmail.attachments.map((att, i) => (
                           <a
                             key={i}
-                            href={`https://mail.google.com/mail/u/0/#inbox/${rawEmail.thread_id}`}
+                            href={gmailInboxUrl(rawEmail.message_id, rawEmail.thread_id, rawEmail.connected_email)}
                             target="_blank"
                             rel="noopener noreferrer"
                             style={{
@@ -718,6 +718,7 @@ function InboxPageInner() {
               key={selected.id}
               analysis={selected}
               sender={selected.sender ?? rawEmail?.sender ?? null}
+              connectedEmail={rawEmail?.connected_email ?? null}
             />
 
             {/* Actions */}

@@ -3,7 +3,7 @@ import { useState } from 'react'
 import { supabase } from '@/lib/supabase'
 import { getQuickActions, draftReply, rewriteDraft, saveReplyFeedback } from '@/lib/api'
 import { ChatTurn, EmailAnalysis, ReplyDraft } from '@/types'
-import { senderEmail } from '@/lib/format'
+import { senderEmail, gmailComposeUrl } from '@/lib/format'
 import { Sparkles, ArrowLeft, Pencil, ExternalLink, MessageCircle, Copy, Check } from 'lucide-react'
 
 /**
@@ -15,7 +15,11 @@ import { Sparkles, ArrowLeft, Pencil, ExternalLink, MessageCircle, Copy, Check }
  * Nothing here sends mail. The final step opens Gmail's compose window with the
  * draft prefilled; the user reviews and sends it themselves.
  */
-export function ReplyPanel({ analysis, sender }: { analysis: EmailAnalysis; sender: string | null }) {
+export function ReplyPanel({ analysis, sender, connectedEmail }: {
+  analysis: EmailAnalysis
+  sender: string | null
+  connectedEmail: string | null
+}) {
   const [replyOpen, setReplyOpen] = useState(false)
   const [quickActions, setQuickActions] = useState<string[]>([])
   const [clarifyingQ, setClarifyingQ] = useState<string | null>(null)
@@ -146,8 +150,9 @@ export function ReplyPanel({ analysis, sender }: { analysis: EmailAnalysis; send
     }
   }
 
+  // Composes from the account the email arrived in, not the browser's default.
   const gmailUrl = draft
-    ? `https://mail.google.com/mail/u/0/?view=cm&fs=1&to=${encodeURIComponent(sender ? senderEmail(sender) : '')}&su=${encodeURIComponent(draft.subject)}&body=${encodeURIComponent(draft.body)}`
+    ? gmailComposeUrl(sender ? senderEmail(sender) : '', draft.subject, draft.body, connectedEmail)
     : '#'
 
   // ── State 1: closed ─────────────────────────────────────────────────────────
