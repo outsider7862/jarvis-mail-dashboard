@@ -12,13 +12,22 @@ export default function LoginPage() {
   const router = useRouter()
   const [email, setEmail]       = useState('')
   const [password, setPassword] = useState('')
-  const [mode, setMode]         = useState<'login' | 'signup'>('login')
+  const [mode, setMode]         = useState<'login' | 'signup' | 'forgot'>('login')
   const [error, setError]       = useState('')
   const [loading, setLoading]   = useState(false)
+  const [sentReset, setSentReset] = useState(false)
   const [captchaToken, setCaptchaToken] = useState('')
   const turnstileRef = useRef<TurnstileInstance>(null)
 
+  // A spent Turnstile token makes the next attempt fail with a confusing
+  // captcha error, so every failure/mode change gets a fresh one.
+  function resetCaptcha() {
+    turnstileRef.current?.reset()
+    setCaptchaToken('')
+  }
+
   async function handleSubmit() {
+    if (mode === 'forgot') return handleForgotPassword()
     setError('')
     setLoading(true)
     try {
@@ -34,23 +43,43 @@ export default function LoginPage() {
       router.push('/dashboard')
     } catch (e: any) {
       setError(e.message ?? 'Something went wrong')
-      // Turnstile tokens are single-use — a spent token would make the next
-      // attempt fail with a confusing captcha error, so get a fresh one.
-      turnstileRef.current?.reset()
-      setCaptchaToken('')
+      resetCaptcha()
       setLoading(false)
     }
   }
 
-  function switchMode() {
-    setMode(mode === 'login' ? 'signup' : 'login')
+  async function handleForgotPassword() {
     setError('')
-    // The token is issued per-attempt; don't carry it across a mode switch.
-    turnstileRef.current?.reset()
-    setCaptchaToken('')
+    setLoading(true)
+    try {
+      // CAPTCHA protection covers password resets too, not just sign-in/sign-up
+      // — without the token Supabase rejects the request.
+      const { error: e } = await supabase.auth.resetPasswordForEmail(email, {
+        redirectTo: `${window.location.origin}/reset-password`,
+        captchaToken,
+      })
+      if (e) throw e
+      setSentReset(true)
+    } catch (e: any) {
+      setError(e.message ?? 'Something went wrong')
+      resetCaptcha()
+    } finally {
+      setLoading(false)
+    }
   }
 
-  const canSubmit = !loading && !!email && !!password && !!captchaToken
+  function goToMode(next: 'login' | 'signup' | 'forgot') {
+    setMode(next)
+    setError('')
+    setSentReset(false)
+    resetCaptcha()
+  }
+
+  function switchMode() {
+    goToMode(mode === 'login' ? 'signup' : 'login')
+  }
+
+  const canSubmit = !loading && !!email && !!captchaToken && (mode === 'forgot' || !!password)
 
   const inputStyle = {
     width: '100%', padding: '10px 12px 10px 36px',
@@ -82,7 +111,9 @@ export default function LoginPage() {
               Jarvis Mail
             </div>
             <div style={{ fontSize: 12, color: 'var(--text-muted)' }}>
-              {mode === 'login' ? 'Sign in to your account' : 'Create your account'}
+              {mode === 'login' ? 'Sign in to your account'
+                : mode === 'signup' ? 'Create your account'
+                  : 'Reset your password'}
             </div>
           </div>
         </div>
@@ -100,16 +131,32 @@ export default function LoginPage() {
             />
           </div>
 
-          {/* Password */}
-          <div style={{ position: 'relative' }}>
-            <Lock size={15} color="var(--text-muted)" style={{ position: 'absolute', left: 11, top: '50%', transform: 'translateY(-50%)' }} />
-            <input
-              type="password" placeholder="Password" value={password}
-              onChange={e => setPassword(e.target.value)}
-              onKeyDown={e => e.key === 'Enter' && canSubmit && handleSubmit()}
-              style={inputStyle}
-            />
-          </div>
+          {/* Password — not needed when requesting a reset link */}
+          {mode !== 'forgot' && (
+            <>
+              <div style={{ position: 'relative' }}>
+                <Lock size={15} color="var(--text-muted)" style={{ position: 'absolute', left: 11, top: '50%', transform: 'translateY(-50%)' }} />
+                <input
+                  type="password" placeholder="Password" value={password}
+                  onChange={e => setPassword(e.target.value)}
+                  onKeyDown={e => e.key === 'Enter' && canSubmit && handleSubmit()}
+                  style={inputStyle}
+                />
+              </div>
+              {mode === 'login' && (
+                <button
+                  onClick={() => goToMode('forgot')}
+                  style={{
+                    background: 'none', border: 'none', cursor: 'pointer',
+                    color: 'var(--text-muted)', fontSize: 12,
+                    textAlign: 'right', width: '100%', marginTop: -4, padding: 0,
+                  }}
+                >
+                  Forgot password?
+                </button>
+              )}
+            </>
+          )}
         </div>
 
         {/* CAPTCHA — Supabase rejects auth without a token when protection is on */}
@@ -137,6 +184,17 @@ export default function LoginPage() {
           </div>
         )}
 
+        {/* Reset link sent */}
+        {sentReset && (
+          <div style={{
+            padding: '16px', borderRadius: 8, textAlign: 'center',
+            background: 'rgba(34,197,94,0.08)', border: '1px solid rgba(34,197,94,0.2)',
+            color: '#22c55e', fontSize: 13,
+          }}>
+            Check your email — we sent a password reset link.
+          </div>
+        )}
+
         {/* Error */}
         {error && (
           <div style={{
@@ -160,12 +218,24 @@ export default function LoginPage() {
         }}>
           {loading
             ? 'Please wait...'
-            : (!captchaToken && email && password)
+            : (!captchaToken && email && (mode === 'forgot' || password))
               ? 'Verifying you’re human...'
-              : mode === 'login' ? 'Sign in' : 'Create account'}
+              : mode === 'login' ? 'Sign in'
+                : mode === 'signup' ? 'Create account'
+                  : 'Send reset link'}
         </button>
 
         {/* Toggle mode */}
+        {mode === 'forgot' ? (
+          <p style={{ textAlign: 'center', fontSize: 13, color: 'var(--text-muted)' }}>
+            <button onClick={() => goToMode('login')} style={{
+              background: 'none', border: 'none', cursor: 'pointer',
+              color: 'var(--accent)', fontWeight: 600, fontSize: 13,
+            }}>
+              ← Back to sign in
+            </button>
+          </p>
+        ) : (
         <p style={{ textAlign: 'center', fontSize: 13, color: 'var(--text-muted)' }}>
           {mode === 'login' ? "Don't have an account? " : 'Already have an account? '}
           <button onClick={switchMode} style={{
@@ -175,6 +245,7 @@ export default function LoginPage() {
             {mode === 'login' ? 'Sign up' : 'Sign in'}
           </button>
         </p>
+        )}
       </div>
     </div>
   )
