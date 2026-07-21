@@ -1,6 +1,6 @@
 'use client'
 export const dynamic = 'force-dynamic'
-import { Suspense, useEffect, useLayoutEffect, useRef, useState, useCallback } from 'react'
+import { Suspense, useEffect, useRef, useState, useCallback } from 'react'
 import { useRouter, useSearchParams } from 'next/navigation'
 import { supabase } from '@/lib/supabase'
 import { getAnalyses, updateAnalysisStatus, getRawEmail } from '@/lib/api'
@@ -161,7 +161,6 @@ function InboxPageInner() {
   const [hasMore, setHasMore] = useState(false)
   const [loadingMore, setLoadingMore] = useState(false)
   const loadedCountRef = useRef(PAGE_SIZE)
-  const detailScrollRef = useRef<HTMLDivElement>(null)
 
   function showToast(msg: string) {
     setToast(msg)
@@ -274,13 +273,6 @@ function InboxPageInner() {
     setSelected(email)
     if (email.status === 'new') markAs(email.id, 'read')
   }
-
-  // The detail panel div persists across selections, so it keeps its scroll
-  // position — opening an email while scrolled down leaves the new one scrolled
-  // down too. Reset to the top on every selection (before paint, so no flash).
-  useLayoutEffect(() => {
-    if (detailScrollRef.current) detailScrollRef.current.scrollTop = 0
-  }, [selected?.id])
 
   // ↑/↓ moves the selection, Esc closes the detail panel. Skipped while typing.
   useEffect(() => {
@@ -514,9 +506,12 @@ function InboxPageInner() {
           </div>
         </div>
 
-        {/* Right: detail panel */}
+        {/* Right: detail panel — keyed on the email id so React mounts a fresh
+            scroll container per email. A reused div keeps its old scrollTop, so
+            opening an email from the bottom of the list left the panel scrolled
+            down; a new element always starts at the top. */}
         {selected && (
-          <div ref={detailScrollRef} style={{
+          <div key={selected.id} style={{
             flex: 1, overflowY: 'auto', minHeight: 0, height: '100%',
             padding: isMobile ? '16px 16px 32px' : '24px 28px',
             display: 'flex', flexDirection: 'column', gap: 20,
