@@ -304,7 +304,12 @@ function InboxPageInner() {
   return (
     <>
       <TopBar title="Inbox" />
-      <div style={{ display: 'flex', flex: 1, overflow: 'hidden', height: 'calc(100vh - 60px)' }}>
+      {/* Fixed to exactly the viewport minus the 60px top bar. No `flex: 1`:
+          combined with the calc height it can grow past the viewport, which
+          makes the whole page scroll — that's what pushed the filter bar and
+          the detail-panel top out of view when opening an email from the
+          bottom of the list. The two panels scroll internally instead. */}
+      <div style={{ display: 'flex', overflow: 'hidden', height: 'calc(100vh - 60px)' }}>
 
         {/* Left: list — on mobile the list and detail are separate full-width
             views rather than a split pane; 420px of detail next to a list
