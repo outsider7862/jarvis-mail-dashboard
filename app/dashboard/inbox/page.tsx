@@ -1,6 +1,6 @@
 'use client'
 export const dynamic = 'force-dynamic'
-import { Suspense, useEffect, useRef, useState, useCallback } from 'react'
+import { Suspense, useEffect, useLayoutEffect, useRef, useState, useCallback } from 'react'
 import { useRouter, useSearchParams } from 'next/navigation'
 import { supabase } from '@/lib/supabase'
 import { getAnalyses, updateAnalysisStatus, getRawEmail } from '@/lib/api'
@@ -27,8 +27,11 @@ const CATEGORIES: { value: string; label: string; param: Record<string, string> 
   { value: '',                  label: 'All',         param: {} },
   { value: 'business_lead',     label: 'Leads',       param: { is_business_lead: 'true' } },
   { value: 'invoice',           label: 'Invoices',    param: { is_invoice: 'true' } },
+  { value: 'order',             label: 'Orders',      param: { is_order: 'true' } },
   { value: 'meeting',           label: 'Meetings',    param: { is_meeting: 'true' } },
   { value: 'customer_support',  label: 'Support',     param: { is_customer_support: 'true' } },
+  { value: 'otp',               label: 'OTPs',        param: { is_otp: 'true' } },
+  { value: 'security_alert',    label: 'Security',    param: { is_security_alert: 'true' } },
   { value: 'phishing',          label: 'Phishing',    param: { is_phishing: 'true' } },
   { value: 'newsletter',        label: 'Newsletters', param: { is_newsletter: 'true' } },
   { value: 'spam',              label: 'Spam',        param: { is_spam: 'true' } },
@@ -158,6 +161,7 @@ function InboxPageInner() {
   const [hasMore, setHasMore] = useState(false)
   const [loadingMore, setLoadingMore] = useState(false)
   const loadedCountRef = useRef(PAGE_SIZE)
+  const detailScrollRef = useRef<HTMLDivElement>(null)
 
   function showToast(msg: string) {
     setToast(msg)
@@ -271,6 +275,13 @@ function InboxPageInner() {
     if (email.status === 'new') markAs(email.id, 'read')
   }
 
+  // The detail panel div persists across selections, so it keeps its scroll
+  // position — opening an email while scrolled down leaves the new one scrolled
+  // down too. Reset to the top on every selection (before paint, so no flash).
+  useLayoutEffect(() => {
+    if (detailScrollRef.current) detailScrollRef.current.scrollTop = 0
+  }, [selected?.id])
+
   // ↑/↓ moves the selection, Esc closes the detail panel. Skipped while typing.
   useEffect(() => {
     function onKeyDown(e: KeyboardEvent) {
@@ -321,10 +332,18 @@ function InboxPageInner() {
             display: 'flex', flexDirection: 'column', gap: 10,
             background: 'var(--bg-surface)',
           }}>
-            {/* Category tabs */}
-            <div style={{ display: 'flex', gap: 6, flexWrap: 'wrap' }}>
+            {/* Category tabs — 12 of these don't fit the 420px panel, so scroll
+                horizontally in one row rather than wrapping to several. */}
+            <div style={{
+              display: 'flex', gap: 6, overflowX: 'auto', paddingBottom: 2,
+              scrollbarWidth: 'thin',
+            }}>
               {CATEGORIES.map(c => (
-                <button key={c.value} onClick={() => setCategory(c.value)} style={filterTabStyle(category === c.value)}>
+                <button
+                  key={c.value}
+                  onClick={() => setCategory(c.value)}
+                  style={{ ...filterTabStyle(category === c.value), flexShrink: 0, whiteSpace: 'nowrap' }}
+                >
                   {c.label}
                 </button>
               ))}
@@ -497,7 +516,7 @@ function InboxPageInner() {
 
         {/* Right: detail panel */}
         {selected && (
-          <div style={{
+          <div ref={detailScrollRef} style={{
             flex: 1, overflowY: 'auto', minHeight: 0, height: '100%',
             padding: isMobile ? '16px 16px 32px' : '24px 28px',
             display: 'flex', flexDirection: 'column', gap: 20,

@@ -7,9 +7,12 @@ const categoryConfig: Record<string, { label: string; color: string }> = {
   customer_support: { label: 'Support',   color: '#38bdf8' },
   newsletter:       { label: 'Newsletter', color: '#fb923c' },
   spam:             { label: 'Spam',       color: '#71717a' },
-  phishing:         { label: 'Phishing',   color: '#ef4444' },
-  personal:         { label: 'Personal',   color: '#ec4899' },
-  other:            { label: 'Other',      color: '#71717a' },
+  phishing:         { label: 'Phishing',       color: '#ef4444' },
+  personal:         { label: 'Personal',       color: '#ec4899' },
+  order:            { label: 'Order',          color: '#06b6d4' },
+  otp:              { label: 'OTP',            color: '#8b5cf6' },
+  security_alert:   { label: 'Security Alert', color: '#f97316' },
+  other:            { label: 'Other',          color: '#71717a' },
 }
 
 const priorityConfig: Record<string, { label: string; color: string }> = {

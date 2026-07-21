@@ -1,7 +1,8 @@
 export type Category =
   | 'business_lead' | 'invoice' | 'meeting'
   | 'customer_support' | 'newsletter' | 'spam'
-  | 'phishing' | 'personal' | 'other'
+  | 'phishing' | 'personal' | 'order' | 'otp'
+  | 'security_alert' | 'other'
 
 export type Priority = 'low' | 'medium' | 'high' | 'urgent'
 
@@ -19,6 +20,9 @@ export interface EmailAnalysis {
   is_newsletter: boolean
   is_spam: boolean
   is_phishing: boolean
+  is_order: boolean
+  is_otp: boolean
+  is_security_alert: boolean
   confidence: number
   status: 'new' | 'read' | 'actioned' | 'dismissed'
   should_notify: boolean
