@@ -87,6 +87,10 @@ export async function getQuickActions(token: string, analysisId: string) {
   return apiFetch(`/api/reply/${analysisId}/quick-actions`, token)
 }
 
+export async function getDecisionAssistance(token: string, analysisId: string) {
+  return apiFetch(`/api/reply/${analysisId}/decision`, token)
+}
+
 export async function draftReply(
   token: string,
   analysisId: string,

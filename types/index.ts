@@ -56,6 +56,14 @@ export interface ChatTurn {
   content: string
 }
 
+export interface DecisionAssistance {
+  what_sender_wants: string
+  available_options: string[]
+  recommendation: string
+  reasoning: string
+  risks: string[] | null
+}
+
 export interface ReplyDraft {
   subject: string
   body: string

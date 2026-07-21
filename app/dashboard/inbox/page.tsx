@@ -8,6 +8,7 @@ import { EmailAnalysis, Category, Priority, RawEmail } from '@/types'
 import { TopBar } from '@/components/TopBar'
 import { CategoryBadge, PriorityBadge, StatusBadge } from '@/components/ui/Badge'
 import { ReplyPanel } from '@/components/ReplyPanel'
+import { DecisionCard } from '@/components/DecisionCard'
 import { formatReceived, senderName, gmailInboxUrl } from '@/lib/format'
 import { useIsMobile } from '@/lib/useIsMobile'
 import {
@@ -712,6 +713,9 @@ function InboxPageInner() {
                 </span>
               </div>
             </div>
+
+            {/* Decision assistance — collapsed + lazy; keyed so it resets per email. */}
+            <DecisionCard key={`decision-${selected.id}`} analysisId={selected.id} />
 
             {/* Reply — keyed on the email id so every field resets when you
                 move to a different email. */}
