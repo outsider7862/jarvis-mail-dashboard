@@ -101,5 +101,8 @@ export interface MorningBrief {
   follow_ups: number
   possible_phishing: number
   personal: number
+  orders: number
+  otps: number
+  security_alerts: number
   estimated_minutes: number
 }

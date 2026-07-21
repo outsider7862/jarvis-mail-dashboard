@@ -10,7 +10,7 @@ import { StatCard } from '@/components/ui/StatCard'
 import { CategoryBadge, PriorityBadge } from '@/components/ui/Badge'
 import { formatReceived, senderName } from '@/lib/format'
 import { useIsMobile } from '@/lib/useIsMobile'
-import { Users, Receipt, CalendarClock, ListTodo, ShieldAlert, Clock, Mail, ArrowRight, CheckCircle2, Heart } from 'lucide-react'
+import { Users, Receipt, CalendarClock, ListTodo, ShieldAlert, Clock, Mail, ArrowRight, CheckCircle2, Heart, Package, KeyRound, ShieldCheck } from 'lucide-react'
 
 export default function OverviewPage() {
   const [brief, setBrief] = useState<MorningBrief | null>(null)
@@ -52,8 +52,11 @@ export default function OverviewPage() {
   const cards = brief ? [
     { label: 'Business Leads', value: brief.business_leads, icon: Users, iconColor: '#22c55e', sub: 'Pending your review', href: '/dashboard/inbox?is_business_lead=true' },
     { label: 'Invoices', value: brief.invoices, icon: Receipt, iconColor: '#f59e0b', sub: 'Require action', href: '/dashboard/inbox?is_invoice=true' },
+    { label: 'Orders', value: brief.orders, icon: Package, iconColor: '#06b6d4', sub: 'Shipping & receipts', href: '/dashboard/inbox?is_order=true' },
     { label: 'Meetings Today', value: brief.meetings_today, icon: CalendarClock, iconColor: '#a78bfa', sub: 'In the last 24h', href: '/dashboard/inbox?is_meeting=true' },
     { label: 'Follow-ups', value: brief.follow_ups, icon: ListTodo, iconColor: '#38bdf8', sub: 'Unresolved items', href: '/dashboard/inbox' },
+    { label: 'OTPs', value: brief.otps, icon: KeyRound, iconColor: '#8b5cf6', sub: 'Verification codes', href: '/dashboard/inbox?is_otp=true' },
+    { label: 'Security Alerts', value: brief.security_alerts, icon: ShieldCheck, iconColor: '#f97316', sub: 'Account activity', href: '/dashboard/inbox?is_security_alert=true' },
     { label: 'Phishing Alerts', value: brief.possible_phishing, icon: ShieldAlert, iconColor: '#ef4444', sub: 'Review carefully', href: '/dashboard/inbox?is_phishing=true' },
     { label: 'Personal', value: brief.personal, icon: Heart, iconColor: '#ec4899', sub: 'Friends & family', href: '/dashboard/inbox?category=personal' },
     { label: 'Time to clear', value: `~${brief.estimated_minutes}m`, icon: Clock, iconColor: '#3b82f6', sub: 'Estimated today', href: '/dashboard/inbox' },
@@ -139,7 +142,7 @@ export default function OverviewPage() {
         {/* Stat cards — Bento grid */}
         {loading ? (
           <div style={{ display: 'grid', gridTemplateColumns: gridCols, gap: 16 }}>
-            {Array.from({ length: 7 }).map((_, i) => (
+            {Array.from({ length: 10 }).map((_, i) => (
               <div key={i} style={{
                 height: 110, borderRadius: 12,
                 background: 'var(--bg-surface)', border: '1px solid var(--border)',
