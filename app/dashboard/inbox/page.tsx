@@ -307,14 +307,15 @@ function InboxPageInner() {
             doesn't fit a phone. */}
         <div style={{
           width: isMobile ? '100%' : (selected ? 420 : '100%'),
-          flexShrink: 0,
+          flexShrink: 0, height: '100%', minHeight: 0,
           display: isMobile && selected ? 'none' : 'flex',
           borderRight: !isMobile && selected ? '1px solid var(--border)' : 'none',
           flexDirection: 'column', overflow: 'hidden',
           transition: isMobile ? 'none' : 'width 0.2s',
         }}>
-          {/* Filters */}
+          {/* Filters — fixed header, never scrolls */}
           <div style={{
+            flexShrink: 0,
             padding: '14px 20px', borderBottom: '1px solid var(--border)',
             display: 'flex', flexDirection: 'column', gap: 10,
             background: 'var(--bg-surface)',
@@ -370,8 +371,8 @@ function InboxPageInner() {
             </div>
           </div>
 
-          {/* Email list */}
-          <div style={{ flex: 1, overflowY: 'auto' }}>
+          {/* Email list — the only thing that scrolls in the left panel */}
+          <div style={{ flex: 1, overflowY: 'auto', minHeight: 0 }}>
             {loading ? (
               <div style={{ padding: 20, display: 'flex', flexDirection: 'column', gap: 8 }}>
                 {Array.from({ length: 8 }).map((_, i) => (
@@ -496,7 +497,7 @@ function InboxPageInner() {
         {/* Right: detail panel */}
         {selected && (
           <div style={{
-            flex: 1, overflowY: 'auto',
+            flex: 1, overflowY: 'auto', minHeight: 0, height: '100%',
             padding: isMobile ? '16px 16px 32px' : '24px 28px',
             display: 'flex', flexDirection: 'column', gap: 20,
           }}>
