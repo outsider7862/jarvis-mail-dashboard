@@ -61,6 +61,23 @@ export interface ChatTurn {
   content: string
 }
 
+export type EventType = 'meeting' | 'deadline' | 'order' | 'payment' | 'custom'
+export type EventStatus = 'pending' | 'confirmed' | 'rejected'
+
+export interface CalendarEvent {
+  id: string
+  email_analysis_id: string | null
+  title: string
+  description: string | null
+  event_type: EventType
+  start_at: string
+  end_at: string | null
+  all_day: boolean
+  status: EventStatus
+  source: 'ai_detected' | 'manual'
+  created_at: string
+}
+
 export interface DecisionAssistance {
   what_sender_wants: string
   available_options: string[]

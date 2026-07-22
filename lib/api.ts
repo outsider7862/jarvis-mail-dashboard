@@ -134,6 +134,47 @@ export async function saveReplyFeedback(token: string, data: {
   })
 }
 
+export async function getCalendarEvents(token: string, params?: Record<string, string>) {
+  const qs = params ? '?' + new URLSearchParams(params).toString() : ''
+  return apiFetch(`/api/calendar${qs}`, token)
+}
+
+export async function getPendingCalendarEvents(token: string) {
+  return apiFetch('/api/calendar/pending', token)
+}
+
+export async function createCalendarEvent(token: string, data: {
+  title: string
+  description?: string
+  event_type: string
+  start_at: string
+  end_at?: string
+  all_day?: boolean
+}) {
+  return apiFetch('/api/calendar', token, {
+    method: 'POST',
+    body: JSON.stringify(data),
+  })
+}
+
+export async function updateCalendarEvent(token: string, eventId: string, data: Partial<{
+  title: string
+  description: string
+  start_at: string
+  end_at: string
+  all_day: boolean
+  status: string
+}>) {
+  return apiFetch(`/api/calendar/${eventId}`, token, {
+    method: 'PATCH',
+    body: JSON.stringify(data),
+  })
+}
+
+export async function deleteCalendarEvent(token: string, eventId: string) {
+  return apiFetch(`/api/calendar/${eventId}`, token, { method: 'DELETE' })
+}
+
 export async function getProfile(token: string) {
   return apiFetch('/api/profile', token)
 }

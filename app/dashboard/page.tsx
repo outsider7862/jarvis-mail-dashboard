@@ -3,12 +3,13 @@ export const dynamic = 'force-dynamic'
 import { useEffect, useState } from 'react'
 import { useRouter } from 'next/navigation'
 import { supabase } from '@/lib/supabase'
-import { getMorningBrief, getNeedsAttention, getConnectedAccounts } from '@/lib/api'
-import { MorningBrief, EmailAnalysis, ConnectedAccountInfo } from '@/types'
+import { getMorningBrief, getNeedsAttention, getConnectedAccounts, getCalendarEvents } from '@/lib/api'
+import { MorningBrief, EmailAnalysis, ConnectedAccountInfo, CalendarEvent } from '@/types'
 import { TopBar } from '@/components/TopBar'
 import { StatCard } from '@/components/ui/StatCard'
 import { CategoryBadge, PriorityBadge } from '@/components/ui/Badge'
 import { formatReceived, senderName } from '@/lib/format'
+import { EVENT_COLORS } from '@/lib/calendar'
 import { useIsMobile } from '@/lib/useIsMobile'
 import { Users, Receipt, CalendarClock, ListTodo, ShieldAlert, Clock, Mail, ArrowRight, CheckCircle2, Heart, Package, KeyRound, ShieldCheck } from 'lucide-react'
 
@@ -16,6 +17,7 @@ export default function OverviewPage() {
   const [brief, setBrief] = useState<MorningBrief | null>(null)
   const [attention, setAttention] = useState<EmailAnalysis[] | null>(null)
   const [accounts, setAccounts] = useState<ConnectedAccountInfo[] | null>(null)
+  const [upcoming, setUpcoming] = useState<CalendarEvent[]>([])
   const [loading, setLoading] = useState(true)
   const [hour, setHour] = useState(0)
   const router = useRouter()
@@ -27,14 +29,17 @@ export default function OverviewPage() {
       if (!data.session) return
       const token = data.session.access_token
       try {
-        const [b, needs, accs] = await Promise.allSettled([
+        const [b, needs, accs, events] = await Promise.allSettled([
           getMorningBrief(token),
           getNeedsAttention(token),
           getConnectedAccounts(token),
+          // Next confirmed events from now forward.
+          getCalendarEvents(token, { status: 'confirmed', from_date: new Date().toISOString() }),
         ])
         if (b.status === 'fulfilled') setBrief(b.value)
         if (needs.status === 'fulfilled') setAttention(needs.value)
         if (accs.status === 'fulfilled') setAccounts(accs.value)
+        if (events.status === 'fulfilled') setUpcoming(events.value.slice(0, 3))
       } finally {
         setLoading(false)
       }
@@ -220,6 +225,50 @@ export default function OverviewPage() {
                 </div>
               ))
             )}
+          </div>
+        )}
+
+        {/* Upcoming events */}
+        {!loading && (
+          <div style={{
+            background: 'var(--bg-surface)', border: '1px solid var(--border)',
+            borderRadius: 12, padding: '20px 24px',
+            display: 'flex', flexDirection: 'column', gap: 14,
+          }}>
+            <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
+              <h3 style={{ fontSize: 14, fontWeight: 600, color: 'var(--text-primary)' }}>Upcoming</h3>
+              <a href="/dashboard/calendar" style={{ fontSize: 12, color: 'var(--accent)', textDecoration: 'none' }}>
+                View calendar →
+              </a>
+            </div>
+            {upcoming.length === 0 ? (
+              <p style={{ fontSize: 13, color: 'var(--text-muted)' }}>No upcoming events.</p>
+            ) : upcoming.map(event => (
+              <div
+                key={event.id}
+                onClick={() => router.push('/dashboard/calendar')}
+                style={{
+                  display: 'flex', alignItems: 'center', gap: 12, cursor: 'pointer',
+                  padding: '10px 14px', borderRadius: 8,
+                  background: 'var(--bg-elevated)', border: '1px solid var(--border)',
+                }}
+              >
+                <div style={{ width: 10, height: 10, borderRadius: '50%', flexShrink: 0, background: EVENT_COLORS[event.event_type] }} />
+                <div style={{ flex: 1, minWidth: 0 }}>
+                  <p style={{ fontSize: 13, fontWeight: 500, color: 'var(--text-primary)', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
+                    {event.title}
+                  </p>
+                  <p style={{ fontSize: 11, color: 'var(--text-muted)' }}>
+                    {new Date(event.start_at).toLocaleDateString(undefined, {
+                      weekday: 'short', month: 'short', day: 'numeric',
+                      hour: event.all_day ? undefined : '2-digit',
+                      minute: event.all_day ? undefined : '2-digit',
+                    })}
+                    {event.all_day ? ' · All day' : ''}
+                  </p>
+                </div>
+              </div>
+            ))}
           </div>
         )}
       </div>
