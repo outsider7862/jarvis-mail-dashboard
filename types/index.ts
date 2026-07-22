@@ -24,6 +24,7 @@ export interface EmailAnalysis {
   is_otp: boolean
   is_security_alert: boolean
   confidence: number
+  confidence_explanation: string | null
   status: 'new' | 'read' | 'actioned' | 'dismissed'
   should_notify: boolean
   created_at: string

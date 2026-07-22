@@ -713,24 +713,31 @@ function InboxPageInner() {
             <div style={{
               background: 'var(--bg-surface)', border: '1px solid var(--border)',
               borderRadius: 10, padding: '14px 20px',
-              display: 'flex', alignItems: 'center', justifyContent: 'space-between',
+              display: 'flex', flexDirection: 'column', gap: 8,
             }}>
-              <span style={{ fontSize: 13, color: 'var(--text-secondary)' }}>AI Confidence</span>
-              <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
-                <div style={{
-                  width: 120, height: 6, borderRadius: 3,
-                  background: 'var(--bg-elevated)', overflow: 'hidden',
-                }}>
+              <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
+                <span style={{ fontSize: 13, color: 'var(--text-secondary)' }}>AI Confidence</span>
+                <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
                   <div style={{
-                    height: '100%', borderRadius: 3,
-                    width: `${Math.round(selected.confidence * 100)}%`,
-                    background: selected.confidence > 0.75 ? '#22c55e' : selected.confidence > 0.5 ? '#f59e0b' : '#ef4444',
-                  }} />
+                    width: 120, height: 6, borderRadius: 3,
+                    background: 'var(--bg-elevated)', overflow: 'hidden',
+                  }}>
+                    <div style={{
+                      height: '100%', borderRadius: 3,
+                      width: `${Math.round(selected.confidence * 100)}%`,
+                      background: selected.confidence > 0.75 ? '#22c55e' : selected.confidence > 0.5 ? '#f59e0b' : '#ef4444',
+                    }} />
+                  </div>
+                  <span style={{ fontSize: 13, fontWeight: 600, color: 'var(--text-primary)' }}>
+                    {Math.round(selected.confidence * 100)}%
+                  </span>
                 </div>
-                <span style={{ fontSize: 13, fontWeight: 600, color: 'var(--text-primary)' }}>
-                  {Math.round(selected.confidence * 100)}%
-                </span>
               </div>
+              {selected.confidence_explanation && (
+                <p style={{ fontSize: 12, color: 'var(--text-muted)', lineHeight: 1.5, marginTop: 2 }}>
+                  {selected.confidence_explanation}
+                </p>
+              )}
             </div>
 
             {/* Decision assistance — collapsed + lazy; keyed so it resets per email. */}
