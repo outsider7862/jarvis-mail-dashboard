@@ -1,6 +1,10 @@
 @import "tailwindcss";
 
+/* Dark is the default theme (no data-theme, or data-theme="dark"). Light is
+   opt-in via data-theme="light" set on <html> by the toggle / no-flash script. */
 :root {
+  color-scheme: dark;
+
   /* HireTrack-inspired dark palette, AI-Native feel */
   --bg-base:       #0f1117;
   --bg-surface:    #16181f;
@@ -27,6 +31,36 @@
   --phishing: #ef4444;
   --spam:     #71717a;
   --newsletter: #fb923c;
+
+  /* Theme-specific bits that aren't a flat surface colour. */
+  --shimmer:       rgba(255, 255, 255, 0.05);
+  --lift-shadow:   rgba(0, 0, 0, 0.55);
+  --overlay:       rgba(0, 0, 0, 0.6);
+}
+
+:root[data-theme='light'] {
+  color-scheme: light;
+
+  --bg-base:       #f6f7f9;
+  --bg-surface:    #ffffff;
+  --bg-elevated:   #f1f3f5;
+  --bg-overlay:    #e7eaee;
+
+  --border:        #e2e5ea;
+  --border-subtle: #eef0f3;
+
+  --text-primary:  #18181b;
+  --text-secondary: #52525b;
+  --text-muted:    #6b7280;
+
+  /* Darker blue so accent text/buttons keep contrast on white. */
+  --accent:        #2563eb;
+  --accent-hover:  #1d4ed8;
+  --accent-subtle: rgba(37, 99, 235, 0.10);
+
+  --shimmer:       rgba(0, 0, 0, 0.05);
+  --lift-shadow:   rgba(15, 23, 42, 0.14);
+  --overlay:       rgba(15, 23, 42, 0.4);
 }
 
 * { box-sizing: border-box; margin: 0; padding: 0; }
@@ -106,7 +140,7 @@ button:not(:disabled):active,
 }
 .hover-lift:hover {
   transform: translateY(-3px);
-  box-shadow: 0 12px 28px -10px rgba(0, 0, 0, 0.55);
+  box-shadow: 0 12px 28px -10px var(--lift-shadow);
   border-color: var(--accent);
 }
 
@@ -117,7 +151,7 @@ button:not(:disabled):active,
   position: absolute;
   inset: 0;
   transform: translateX(-100%);
-  background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.05), transparent);
+  background: linear-gradient(90deg, transparent, var(--shimmer), transparent);
   animation: jm-shimmer 1.5s infinite;
 }
 

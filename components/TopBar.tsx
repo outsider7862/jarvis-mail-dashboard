@@ -6,6 +6,7 @@ import { supabase } from '@/lib/supabase'
 import { getPendingNotifications, markNotified } from '@/lib/api'
 import { formatReceived } from '@/lib/format'
 import { useIsMobile } from '@/lib/useIsMobile'
+import { ThemeToggle } from '@/components/ThemeToggle'
 import { EmailAnalysis } from '@/types'
 
 // ─── Command palette ──────────────────────────────────────────────────────────
@@ -421,6 +422,9 @@ export function TopBar({ title }: { title: string }) {
               </>
             )}
           </button>
+
+          {/* Theme toggle */}
+          <ThemeToggle />
 
           {/* Notification bell */}
           <div style={{ position: 'relative' }}>
