@@ -1,7 +1,7 @@
 'use client'
 import Link from 'next/link'
 import { usePathname } from 'next/navigation'
-import { LayoutDashboard, Mail, Users, Bell, Settings, LogOut, Zap, CalendarDays, PanelLeftClose, PanelLeftOpen } from 'lucide-react'
+import { LayoutDashboard, Mail, Users, Bell, Settings, LogOut, Zap, CalendarDays, ChevronLeft } from 'lucide-react'
 import { supabase } from '@/lib/supabase'
 import { useRouter } from 'next/navigation'
 
@@ -40,14 +40,6 @@ export function Sidebar({ mobile = false, onNavigate, collapsed = false, onToggl
     router.push('/login')
   }
 
-  // Labels fade out and the rail clips them (overflow hidden) as it narrows,
-  // so the icons stay put while the text disappears.
-  const labelStyle = (): React.CSSProperties => ({
-    whiteSpace: 'nowrap', overflow: 'hidden',
-    opacity: isCollapsed ? 0 : 1,
-    transition: 'opacity 0.15s ease',
-  })
-
   return (
     <aside style={{
       width: isCollapsed ? COLLAPSED : EXPANDED, flexShrink: 0, overflow: 'hidden',
@@ -58,88 +50,107 @@ export function Sidebar({ mobile = false, onNavigate, collapsed = false, onToggl
         ? { position: 'fixed' as const, top: 0, left: 0, bottom: 0, height: '100dvh', zIndex: 60 }
         : { position: 'sticky' as const, top: 0, height: '100vh', minHeight: '100vh' }),
     }}>
+      {/* Brand + collapse toggle. Stacks vertically when collapsed so the toggle
+          stays reachable in the narrow rail (TechHire-style). */}
       <div style={{
-        padding: '24px 20px', display: 'flex', alignItems: 'center', gap: 10,
-        borderBottom: '1px solid var(--border)',
+        flexShrink: 0, borderBottom: '1px solid var(--border)',
+        display: 'flex', alignItems: 'center',
+        flexDirection: isCollapsed ? 'column' : 'row',
+        gap: isCollapsed ? 12 : 10,
+        padding: isCollapsed ? '16px 0' : '0 12px 0 18px',
+        height: isCollapsed ? undefined : 60,
       }}>
         <div style={{
-          width: 32, height: 32, borderRadius: 8, flexShrink: 0,
+          width: 30, height: 30, borderRadius: 8, flexShrink: 0,
           background: 'var(--accent)', display: 'flex', alignItems: 'center', justifyContent: 'center',
         }}>
-          <Zap size={18} color="#fff" strokeWidth={2.5} />
+          <Zap size={17} color="#fff" strokeWidth={2.5} />
         </div>
-        <span style={{
-          fontSize: 16, fontWeight: 700, color: 'var(--text-primary)', letterSpacing: '-0.02em',
-          ...labelStyle(),
-        }}>
-          Jarvis Mail
-        </span>
-      </div>
-
-      <nav style={{ flex: 1, padding: '12px 10px', display: 'flex', flexDirection: 'column', gap: 2 }}>
-        {nav.map(({ href, label: text, icon: Icon }) => {
-          const active = isActive(href, pathname)
-          return (
-            <Link
-              key={href} href={href} onClick={onNavigate}
-              title={isCollapsed ? text : undefined}
-              style={{
-                display: 'flex', alignItems: 'center', gap: 10,
-                padding: mobile ? '12px' : '9px 12px', borderRadius: 8, textDecoration: 'none',
-                fontSize: 14, fontWeight: active ? 600 : 400,
-                color: active ? 'var(--text-primary)' : 'var(--text-secondary)',
-                background: active ? 'var(--bg-elevated)' : 'transparent',
-                transition: 'background 0.15s, color 0.15s',
-              }}
-              onMouseEnter={e => { if (!active) e.currentTarget.style.background = 'var(--bg-elevated)' }}
-              onMouseLeave={e => { if (!active) e.currentTarget.style.background = 'transparent' }}
-            >
-              <Icon size={16} strokeWidth={active ? 2.5 : 2} style={{ flexShrink: 0 }} />
-              <span style={labelStyle()}>{text}</span>
-              {active && !isCollapsed && (
-                <span style={{
-                  marginLeft: 'auto', width: 6, height: 6, flexShrink: 0,
-                  borderRadius: '50%', background: 'var(--accent)',
-                }} />
-              )}
-            </Link>
-          )
-        })}
-      </nav>
-
-      <div style={{ padding: '12px 10px', borderTop: '1px solid var(--border)', display: 'flex', flexDirection: 'column', gap: 2 }}>
-        {/* Collapse toggle — desktop rail only */}
+        {!isCollapsed && (
+          <span className="animate-fade" style={{
+            flex: 1, fontSize: 15, fontWeight: 700, color: 'var(--text-primary)',
+            letterSpacing: '-0.02em', whiteSpace: 'nowrap', overflow: 'hidden',
+          }}>
+            Jarvis Mail
+          </span>
+        )}
         {!mobile && onToggleCollapse && (
           <button
             onClick={onToggleCollapse}
-            title={isCollapsed ? 'Expand sidebar' : 'Collapse sidebar'}
+            aria-label={isCollapsed ? 'Expand sidebar' : 'Collapse sidebar'}
+            title={isCollapsed ? 'Expand' : 'Collapse'}
             style={{
-              display: 'flex', alignItems: 'center', gap: 10,
-              padding: '9px 12px', borderRadius: 8, cursor: 'pointer',
-              fontSize: 14, color: 'var(--text-muted)',
-              background: 'transparent', border: 'none', width: '100%',
+              width: 28, height: 28, borderRadius: 7, flexShrink: 0, cursor: 'pointer',
+              background: 'transparent', border: 'none', color: 'var(--text-muted)',
+              display: 'flex', alignItems: 'center', justifyContent: 'center',
               transition: 'background 0.15s, color 0.15s',
             }}
             onMouseEnter={e => { e.currentTarget.style.color = 'var(--text-primary)'; e.currentTarget.style.background = 'var(--bg-elevated)' }}
             onMouseLeave={e => { e.currentTarget.style.color = 'var(--text-muted)'; e.currentTarget.style.background = 'transparent' }}
           >
-            {isCollapsed ? <PanelLeftOpen size={16} style={{ flexShrink: 0 }} /> : <PanelLeftClose size={16} style={{ flexShrink: 0 }} />}
-            <span style={labelStyle()}>Collapse</span>
+            <ChevronLeft size={16} style={{ transform: isCollapsed ? 'rotate(180deg)' : 'none', transition: 'transform 0.24s ease' }} />
           </button>
         )}
+      </div>
 
+      <nav style={{
+        flex: 1, padding: isCollapsed ? '14px 10px' : '14px 12px',
+        display: 'flex', flexDirection: 'column', gap: 3,
+      }}>
+        {nav.map(({ href, label: text, icon: Icon }, i) => {
+          const active = isActive(href, pathname)
+          return (
+            <Link
+              key={href} href={href} onClick={onNavigate}
+              title={isCollapsed ? text : undefined}
+              className="animate-slide-in"
+              style={{
+                position: 'relative',
+                display: 'flex', alignItems: 'center', gap: 11,
+                padding: '10px 12px', borderRadius: 8, textDecoration: 'none',
+                fontSize: 14, fontWeight: active ? 600 : 500,
+                color: active ? 'var(--text-primary)' : 'var(--text-secondary)',
+                background: active ? 'var(--accent-subtle)' : 'transparent',
+                transition: 'background 0.15s, color 0.15s, transform 0.15s',
+                animationDelay: `${i * 45}ms`,
+              }}
+              onMouseEnter={e => {
+                if (!active) { e.currentTarget.style.background = 'var(--bg-elevated)'; e.currentTarget.style.color = 'var(--text-primary)' }
+                if (!isCollapsed) e.currentTarget.style.transform = 'translateX(2px)'
+              }}
+              onMouseLeave={e => {
+                if (!active) { e.currentTarget.style.background = 'transparent'; e.currentTarget.style.color = 'var(--text-secondary)' }
+                e.currentTarget.style.transform = 'none'
+              }}
+            >
+              {/* Left active bar — TechHire-style indicator */}
+              <span style={{
+                position: 'absolute', left: 0, top: '50%',
+                height: 18, width: 3, borderRadius: '0 3px 3px 0', background: 'var(--accent)',
+                transform: `translateY(-50%) translateX(${active ? '-6px' : '-10px'})`,
+                opacity: active ? 1 : 0,
+                transition: 'opacity 0.2s ease, transform 0.2s ease',
+              }} />
+              <Icon size={17} strokeWidth={active ? 2.4 : 2} color={active ? 'var(--accent)' : 'currentColor'} style={{ flexShrink: 0 }} />
+              {!isCollapsed && <span style={{ whiteSpace: 'nowrap', overflow: 'hidden' }}>{text}</span>}
+            </Link>
+          )
+        })}
+      </nav>
+
+      <div style={{ padding: isCollapsed ? '12px 10px' : '12px 12px', borderTop: '1px solid var(--border)' }}>
         <button onClick={handleSignOut} title={isCollapsed ? 'Sign out' : undefined} style={{
-          display: 'flex', alignItems: 'center', gap: 10,
-          padding: '9px 12px', borderRadius: 8, cursor: 'pointer',
-          fontSize: 14, fontWeight: 400, color: 'var(--text-muted)',
+          display: 'flex', alignItems: 'center', gap: 11,
+          padding: '10px 12px', borderRadius: 8, cursor: 'pointer',
+          fontSize: 14, fontWeight: 500, color: 'var(--text-muted)',
           background: 'transparent', border: 'none', width: '100%',
           transition: 'background 0.15s, color 0.15s',
         }}
           onMouseEnter={e => { e.currentTarget.style.color = '#ef4444'; e.currentTarget.style.background = 'rgba(239,68,68,0.08)' }}
           onMouseLeave={e => { e.currentTarget.style.color = 'var(--text-muted)'; e.currentTarget.style.background = 'transparent' }}
         >
-          <LogOut size={16} style={{ flexShrink: 0 }} />
-          <span style={labelStyle()}>Sign out</span>
+          <LogOut size={17} style={{ flexShrink: 0 }} />
+          {!isCollapsed && <span style={{ whiteSpace: 'nowrap', overflow: 'hidden' }}>Sign out</span>}
         </button>
       </div>
     </aside>

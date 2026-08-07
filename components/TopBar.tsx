@@ -394,11 +394,11 @@ export function TopBar({ title }: { title: string }) {
       }}>
         <h1 style={{ fontSize: 16, fontWeight: 600, color: 'var(--text-primary)' }}>{title}</h1>
 
-        <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
+        <div className="animate-fade" style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
 
           {/* Search / Command palette trigger — collapses to an icon on mobile,
               where the "⌘K" hint is meaningless and the bar is tight. */}
-          <button onClick={() => setShowPalette(true)} aria-label="Search" style={{
+          <button onClick={() => setShowPalette(true)} aria-label="Search" className="hover-lift" style={{
             display: 'flex', alignItems: 'center', gap: 8,
             padding: isMobile ? 0 : '6px 12px',
             width: isMobile ? 36 : undefined, height: isMobile ? 36 : undefined,
@@ -406,11 +406,7 @@ export function TopBar({ title }: { title: string }) {
             borderRadius: 8,
             background: 'var(--bg-elevated)', border: '1px solid var(--border)',
             color: 'var(--text-muted)', fontSize: 13, cursor: 'pointer',
-            transition: 'border-color 0.15s',
-          }}
-            onMouseEnter={e => e.currentTarget.style.borderColor = 'var(--accent)'}
-            onMouseLeave={e => e.currentTarget.style.borderColor = 'var(--border)'}
-          >
+          }}>
             <Search size={isMobile ? 16 : 14} />
             {!isMobile && (
               <>
@@ -428,7 +424,7 @@ export function TopBar({ title }: { title: string }) {
 
           {/* Notification bell */}
           <div style={{ position: 'relative' }}>
-            <button onClick={() => { setShowNotifs(p => !p); setShowProfile(false) }} style={{
+            <button onClick={() => { setShowNotifs(p => !p); setShowProfile(false) }} className="hover-lift" style={{
               width: 36, height: 36, borderRadius: 8, cursor: 'pointer',
               background: showNotifs ? 'var(--accent-subtle)' : 'var(--bg-elevated)',
               border: `1px solid ${showNotifs ? 'rgba(59,130,246,0.4)' : 'var(--border)'}`,
@@ -461,13 +457,13 @@ export function TopBar({ title }: { title: string }) {
 
           {/* Avatar / Profile */}
           <div style={{ position: 'relative' }}>
-            <button onClick={() => { setShowProfile(p => !p); setShowNotifs(false) }} style={{
+            <button onClick={() => { setShowProfile(p => !p); setShowNotifs(false) }} className="hover-lift" style={{
               width: 36, height: 36, borderRadius: '50%',
               background: 'var(--accent)', display: 'flex',
               alignItems: 'center', justifyContent: 'center',
               fontSize: 13, fontWeight: 700, color: '#fff',
               cursor: 'pointer', border: showProfile ? '2px solid rgba(255,255,255,0.4)' : '2px solid transparent',
-              transition: 'border-color 0.15s',
+              transition: 'all 0.16s',
             }}>
               {initials}
             </button>

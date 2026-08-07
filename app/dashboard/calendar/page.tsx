@@ -369,14 +369,20 @@ function EventModal({ existing, defaultDate, onClose, onSaved }: {
 
   return (
     <>
-      <div className="animate-fade" style={{ position: 'fixed', inset: 0, background: 'rgba(0,0,0,0.6)', zIndex: 60, backdropFilter: 'blur(2px)' }} />
-      <div className="animate-rise" style={{
-        position: 'fixed', top: '50%', left: '50%', transform: 'translate(-50%, -50%)',
-        width: '100%', maxWidth: 440, zIndex: 61,
-        background: 'var(--bg-elevated)', border: '1px solid var(--border)', borderRadius: 14,
-        padding: 28, display: 'flex', flexDirection: 'column', gap: 16,
-        maxHeight: 'calc(100vh - 48px)', overflowY: 'auto',
+      <div onClick={onClose} className="animate-fade" style={{ position: 'fixed', inset: 0, background: 'var(--overlay)', zIndex: 60, backdropFilter: 'blur(2px)' }} />
+      {/* Flex-centering wrapper: the panel is centered here rather than with a
+          translate, so animate-rise's own transform doesn't fight the centering. */}
+      <div style={{
+        position: 'fixed', inset: 0, zIndex: 61, padding: 24,
+        display: 'flex', alignItems: 'center', justifyContent: 'center', pointerEvents: 'none',
       }}>
+        <div className="animate-rise" style={{
+          pointerEvents: 'auto',
+          width: '100%', maxWidth: 440,
+          background: 'var(--bg-elevated)', border: '1px solid var(--border)', borderRadius: 14,
+          padding: 28, display: 'flex', flexDirection: 'column', gap: 16,
+          maxHeight: 'calc(100vh - 48px)', overflowY: 'auto',
+        }}>
         <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
           <CalendarDays size={16} color="var(--accent)" />
           <h3 style={{ fontSize: 15, fontWeight: 700, color: 'var(--text-primary)' }}>
@@ -429,6 +435,7 @@ function EventModal({ existing, defaultDate, onClose, onSaved }: {
           }}>
             {saving ? 'Saving...' : existing ? 'Save' : 'Add event'}
           </button>
+        </div>
         </div>
       </div>
     </>

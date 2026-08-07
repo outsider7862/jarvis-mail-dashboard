@@ -5,23 +5,24 @@
 :root {
   color-scheme: dark;
 
-  /* HireTrack-inspired dark palette, AI-Native feel */
-  --bg-base:       #0f1117;
-  --bg-surface:    #16181f;
-  --bg-elevated:   #1e2028;
-  --bg-overlay:    #252730;
+  /* Deeper, more layered dark — clearer separation between base/surface/
+     elevated so cards read as lifted rather than flat. */
+  --bg-base:       #090b11;
+  --bg-surface:    #13161f;
+  --bg-elevated:   #1c2029;
+  --bg-overlay:    #272c38;
 
-  --border:        #2e3038;
-  --border-subtle: #252730;
+  --border:        #2b303d;
+  --border-subtle: #1e232d;
 
-  --text-primary:  #f4f4f5;
-  --text-secondary: #a1a1aa;
-  --text-muted:    #71717a;
+  --text-primary:  #f5f6f8;
+  --text-secondary: #a6a9b4;
+  --text-muted:    #74777f;
 
   /* Accent — single crisp blue, no gradients */
   --accent:        #3b82f6;
   --accent-hover:  #2563eb;
-  --accent-subtle: rgba(59, 130, 246, 0.12);
+  --accent-subtle: rgba(59, 130, 246, 0.15);
 
   /* Semantic colours for category badges */
   --lead:     #22c55e;
