@@ -11,6 +11,7 @@ import { CalendarEvent, EventType } from '@/types'
 import { TopBar } from '@/components/TopBar'
 import { EVENT_COLORS, EVENT_TYPE_LABELS, dayKey } from '@/lib/calendar'
 import { useIsMobile } from '@/lib/useIsMobile'
+import { useToast } from '@/components/ui/Toast'
 import {
   ChevronLeft, ChevronRight, Plus, Check, X, Trash2, Pencil, Mail, Sparkles, CalendarDays,
 } from 'lucide-react'
@@ -26,12 +27,14 @@ function eventTime(e: CalendarEvent): string {
 export default function CalendarPage() {
   const router = useRouter()
   const isMobile = useIsMobile()
+  const toast = useToast()
   const [monthDate, setMonthDate] = useState(() => { const d = new Date(); return new Date(d.getFullYear(), d.getMonth(), 1) })
   const [events, setEvents] = useState<CalendarEvent[]>([])
   const [pending, setPending] = useState<CalendarEvent[]>([])
   const [selectedDay, setSelectedDay] = useState<string | null>(null)
   const [showAdd, setShowAdd] = useState(false)
   const [editing, setEditing] = useState<CalendarEvent | null>(null)
+  const [loaded, setLoaded] = useState(false)
 
   const token = useCallback(async () => {
     const { data } = await supabase.auth.getSession()
@@ -51,6 +54,7 @@ export default function CalendarPage() {
     ])
     setEvents(all)
     setPending(pend)
+    setLoaded(true)
   }, [monthDate, token])
 
   useEffect(() => { loadEvents() }, [loadEvents])
@@ -87,17 +91,32 @@ export default function CalendarPage() {
     const t = await token(); if (!t) return
     setPending(prev => prev.filter(e => e.id !== id))
     await updateCalendarEvent(t, id, { status: 'confirmed' })
+    toast.success('Added to calendar')
     loadEvents()
   }
   async function rejectPending(id: string) {
     const t = await token(); if (!t) return
     setPending(prev => prev.filter(e => e.id !== id))
     await updateCalendarEvent(t, id, { status: 'rejected' })
+    toast.info('Suggestion dismissed')
   }
-  async function removeEvent(id: string) {
-    const t = await token(); if (!t) return
-    setEvents(prev => prev.filter(e => e.id !== id))
-    await deleteCalendarEvent(t, id)
+
+  // Deferred delete: pull the event from view immediately and offer Undo, but
+  // hold the actual DELETE until the toast expires — so Undo just cancels the
+  // timer and restores the row, no re-create round trip.
+  function removeEvent(event: CalendarEvent) {
+    setEvents(prev => prev.filter(e => e.id !== event.id))
+    const timer = setTimeout(async () => {
+      const t = await token(); if (!t) return
+      try { await deleteCalendarEvent(t, event.id) } catch { loadEvents() }
+    }, 5000)
+    toast.error(`Deleted "${event.title.slice(0, 40)}"`, {
+      duration: 5000,
+      action: {
+        label: 'Undo',
+        onClick: () => { clearTimeout(timer); setEvents(prev => [...prev, event]) },
+      },
+    })
   }
 
   return (
@@ -180,7 +199,12 @@ export default function CalendarPage() {
                   {w}
                 </div>
               ))}
-              {grid.map((d, i) => {
+              {!loaded ? Array.from({ length: 42 }).map((_, i) => (
+                <div key={`sk-${i}`} className="shimmer" style={{
+                  minHeight: isMobile ? 56 : 92, background: 'var(--bg-elevated)',
+                  borderRight: '1px solid var(--border-subtle)', borderBottom: '1px solid var(--border-subtle)',
+                }} />
+              )) : grid.map((d, i) => {
                 const key = dayKey(d)
                 const inMonth = d.getMonth() === monthDate.getMonth()
                 const dayEvts = byDay.get(key) ?? []
@@ -254,7 +278,7 @@ export default function CalendarPage() {
                       <span style={{ fontSize: 13, fontWeight: 600, color: 'var(--text-primary)' }}>{e.title}</span>
                       <div style={{ display: 'flex', gap: 4, flexShrink: 0 }}>
                         <button onClick={() => setEditing(e)} title="Edit" style={miniBtn}><Pencil size={12} /></button>
-                        <button onClick={() => removeEvent(e.id)} title="Delete" style={miniBtn}><Trash2 size={12} /></button>
+                        <button onClick={() => removeEvent(e)} title="Delete" style={miniBtn}><Trash2 size={12} /></button>
                       </div>
                     </div>
                     <span style={{ fontSize: 12, color: 'var(--text-secondary)' }}>{eventTime(e)} · {EVENT_TYPE_LABELS[e.event_type]}</span>
@@ -282,7 +306,7 @@ export default function CalendarPage() {
           existing={editing}
           defaultDate={selectedDay}
           onClose={() => { setShowAdd(false); setEditing(null) }}
-          onSaved={() => { setShowAdd(false); setEditing(null); loadEvents() }}
+          onSaved={() => { toast.success(editing ? 'Event updated' : 'Event added'); setShowAdd(false); setEditing(null); loadEvents() }}
         />
       )}
     </>

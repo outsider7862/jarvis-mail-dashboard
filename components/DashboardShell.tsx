@@ -10,10 +10,26 @@ import { useIsMobile } from '@/lib/useIsMobile'
  * column; below the mobile breakpoint it becomes an off-canvas drawer behind a
  * hamburger, so the 220px column doesn't eat half a phone screen.
  */
+const COLLAPSE_KEY = 'jm-sidebar-collapsed'
+
 export function DashboardShell({ children }: { children: React.ReactNode }) {
   const isMobile = useIsMobile()
   const [drawerOpen, setDrawerOpen] = useState(false)
+  const [collapsed, setCollapsed] = useState(false)
   const pathname = usePathname()
+
+  // Restore the collapsed preference on mount (client-only; localStorage).
+  useEffect(() => {
+    setCollapsed(localStorage.getItem(COLLAPSE_KEY) === '1')
+  }, [])
+
+  function toggleCollapse() {
+    setCollapsed(prev => {
+      const next = !prev
+      localStorage.setItem(COLLAPSE_KEY, next ? '1' : '0')
+      return next
+    })
+  }
 
   // Never leave the drawer open behind a route change, or stranded open if the
   // viewport grows back to desktop.
@@ -37,7 +53,7 @@ export function DashboardShell({ children }: { children: React.ReactNode }) {
 
   return (
     <div style={{ display: 'flex', minHeight: '100vh', background: 'var(--bg-base)' }}>
-      {!isMobile && <Sidebar />}
+      {!isMobile && <Sidebar collapsed={collapsed} onToggleCollapse={toggleCollapse} />}
 
       {isMobile && drawerOpen && (
         <>

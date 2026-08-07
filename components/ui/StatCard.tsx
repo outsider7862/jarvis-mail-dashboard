@@ -1,4 +1,5 @@
 import { LucideIcon } from 'lucide-react'
+import { CountUp } from '@/components/CountUp'
 
 interface StatCardProps {
   label: string
@@ -26,9 +27,13 @@ export function StatCard({ label, value, icon: Icon, iconColor = '#3b82f6', sub 
         </div>
       </div>
       <div>
-        <span style={{ fontSize: 32, fontWeight: 700, color: 'var(--text-primary)', lineHeight: 1 }}>
-          {value}
-        </span>
+        {typeof value === 'number' ? (
+          <CountUp value={value} style={{ fontSize: 32, fontWeight: 700, color: 'var(--text-primary)', lineHeight: 1 }} />
+        ) : (
+          <span style={{ fontSize: 32, fontWeight: 700, color: 'var(--text-primary)', lineHeight: 1 }}>
+            {value}
+          </span>
+        )}
         {sub && <p style={{ color: 'var(--text-muted)', fontSize: 12, marginTop: 4 }}>{sub}</p>}
       </div>
     </div>

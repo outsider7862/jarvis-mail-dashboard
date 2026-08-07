@@ -7,6 +7,7 @@ import { getConnectedAccounts, startGmailConnection, createTrigger, disconnectGm
 import { ConnectedAccountInfo, UserProfile } from '@/types'
 import { TopBar } from '@/components/TopBar'
 import { useIsMobile } from '@/lib/useIsMobile'
+import { useToast } from '@/components/ui/Toast'
 import { Mail, CheckCircle2, Loader2, Shield, Eye, Bot, Trash2, Unplug, Check } from 'lucide-react'
 
 const WORK_TYPES = [
@@ -41,6 +42,7 @@ function SettingsPageInner() {
   const router = useRouter()
   const searchParams = useSearchParams()
   const isMobile = useIsMobile()
+  const toast = useToast()
   const [email, setEmail] = useState('')
   const [accounts, setAccounts] = useState<ConnectedAccountInfo[] | null>(null)
   const [connecting, setConnecting] = useState(false)
@@ -146,8 +148,10 @@ function SettingsPageInner() {
       if (!data.session) return
       await disconnectGmail(data.session.access_token)
       setAccounts(await getConnectedAccounts(data.session.access_token))
+      toast.success('Gmail disconnected')
     } catch {
       setError('Could not disconnect. Try again.')
+      toast.error('Could not disconnect. Try again.')
     } finally {
       setDisconnectStep('idle')
     }
@@ -202,7 +206,14 @@ function SettingsPageInner() {
           </div>
 
           {profile === null ? (
-            <p style={{ fontSize: 13, color: 'var(--text-muted)' }}>Loading...</p>
+            <div style={{ display: 'flex', flexDirection: 'column', gap: 12 }}>
+              {[70, 100, 100, 100, 60].map((w, i) => (
+                <div key={i} className="shimmer" style={{
+                  height: 34, width: `${w}%`, borderRadius: 7,
+                  background: 'var(--bg-elevated)', border: '1px solid var(--border)',
+                }} />
+              ))}
+            </div>
           ) : (
             <>
               <div style={{ display: 'flex', flexDirection: 'column', gap: 6 }}>
@@ -289,12 +300,10 @@ function SettingsPageInner() {
               <style>{`@keyframes spin { to { transform: rotate(360deg) } }`}</style>
             </div>
           ) : accounts === null ? (
-            <div style={{
-              padding: '20px', textAlign: 'center', borderRadius: 8,
-              background: 'var(--bg-elevated)', border: '1px dashed var(--border)',
-            }}>
-              <p style={{ fontSize: 13, color: 'var(--text-muted)' }}>Loading...</p>
-            </div>
+            <div className="shimmer" style={{
+              height: 52, borderRadius: 8,
+              background: 'var(--bg-elevated)', border: '1px solid var(--border)',
+            }} />
           ) : gmailAccount ? (
             <div style={{
               padding: '16px 20px', borderRadius: 8,

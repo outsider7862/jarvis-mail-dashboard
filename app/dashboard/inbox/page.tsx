@@ -9,6 +9,7 @@ import { TopBar } from '@/components/TopBar'
 import { CategoryBadge, PriorityBadge, StatusBadge } from '@/components/ui/Badge'
 import { ReplyPanel } from '@/components/ReplyPanel'
 import { DecisionCard } from '@/components/DecisionCard'
+import { useToast } from '@/components/ui/Toast'
 import { formatReceived, senderName, gmailInboxUrl } from '@/lib/format'
 import { useIsMobile } from '@/lib/useIsMobile'
 import {
@@ -156,16 +157,11 @@ function InboxPageInner() {
   const [selected, setSelected] = useState<EmailAnalysis | null>(null)
   const [rawEmail, setRawEmail] = useState<RawEmail | null>(null)
   const [rawEmailLoading, setRawEmailLoading] = useState(false)
-  const [toast, setToast] = useState('')
   const [showOriginal, setShowOriginal] = useState(false)
   const [hasMore, setHasMore] = useState(false)
   const [loadingMore, setLoadingMore] = useState(false)
   const loadedCountRef = useRef(PAGE_SIZE)
-
-  function showToast(msg: string) {
-    setToast(msg)
-    setTimeout(() => setToast(''), 2200)
-  }
+  const toast = useToast()
 
   const buildParams = useCallback(() => {
     const activeCategory = CATEGORIES.find(c => c.value === category)
@@ -265,8 +261,8 @@ function InboxPageInner() {
     await updateAnalysisStatus(data.session.access_token, id, newStatus)
     setEmails(prev => prev.map(e => e.id === id ? { ...e, status: newStatus as any } : e))
     setSelected(prev => prev && prev.id === id ? { ...prev, status: newStatus as any } : prev)
-    if (newStatus === 'actioned') showToast('Marked as actioned')
-    if (newStatus === 'dismissed') showToast('Email dismissed')
+    if (newStatus === 'actioned') toast.success('Marked as actioned')
+    if (newStatus === 'dismissed') toast.info('Email dismissed')
   }
 
   function openEmail(email: EmailAnalysis) {
@@ -775,21 +771,6 @@ function InboxPageInner() {
           </div>
         )}
       </div>
-
-      {/* Toast confirmation */}
-      {toast && (
-        <div style={{
-          position: 'fixed', bottom: 24, right: 24, zIndex: 60,
-          display: 'flex', alignItems: 'center', gap: 8,
-          padding: '10px 16px', borderRadius: 10,
-          background: 'var(--bg-elevated)', border: '1px solid var(--border)',
-          boxShadow: '0 8px 24px rgba(0,0,0,0.4)',
-          color: 'var(--text-primary)', fontSize: 13, fontWeight: 500,
-        }}>
-          <CheckCheck size={14} color="#22c55e" />
-          {toast}
-        </div>
-      )}
     </>
   )
 }

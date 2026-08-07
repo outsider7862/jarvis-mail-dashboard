@@ -9,6 +9,7 @@ import { TopBar } from '@/components/TopBar'
 import { StatusBadge } from '@/components/ui/Badge'
 import { formatReceived } from '@/lib/format'
 import { useIsMobile } from '@/lib/useIsMobile'
+import { useToast } from '@/components/ui/Toast'
 import { CheckCircle, XCircle, Building2, Mail, DollarSign, Briefcase, Clock, ArrowUpRight } from 'lucide-react'
 
 export default function LeadsPage() {
@@ -17,6 +18,7 @@ export default function LeadsPage() {
   const [filter, setFilter]   = useState('')
   const router = useRouter()
   const isMobile = useIsMobile()
+  const toast = useToast()
 
   useEffect(() => {
     async function load() {
@@ -34,6 +36,8 @@ export default function LeadsPage() {
     if (!data.session) return
     await updateLeadStatus(data.session.access_token, id, status)
     setLeads(prev => prev.map(l => l.id === id ? { ...l, status } : l))
+    if (status === 'confirmed') toast.success('Lead confirmed')
+    else toast.info('Lead rejected')
   }
 
   const filterStyle = (active: boolean) => ({
