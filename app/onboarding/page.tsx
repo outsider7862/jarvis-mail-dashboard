@@ -155,7 +155,7 @@ export default function OnboardingPage() {
       minHeight: '100vh', display: 'flex', alignItems: 'center', justifyContent: 'center',
       background: 'var(--bg-base)', padding: 24,
     }}>
-      <div style={{
+      <div className="animate-rise" style={{
         width: '100%', maxWidth: CARD_MAX,
         background: 'var(--bg-surface)', border: '1px solid var(--border)',
         borderRadius: 16, padding: 36,

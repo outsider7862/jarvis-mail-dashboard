@@ -51,11 +51,89 @@ body {
   border-radius: 4px;
 }
 
-/* Respect reduced-motion preferences (pulse skeletons, spinners, hover transitions) */
+/* --- Global interaction polish ------------------------------------------ */
+
+/* Smooth, scoped transitions on the things people actually touch. */
+a, button, input, select, textarea, [role='button'], summary {
+  transition: color 160ms ease, background-color 160ms ease,
+    border-color 160ms ease, box-shadow 160ms ease, transform 160ms ease,
+    opacity 160ms ease;
+}
+
+/* Tactile press feedback on any enabled button. */
+button:not(:disabled):active,
+[role='button']:not([aria-disabled='true']):active {
+  transform: scale(0.97);
+}
+
+/* --- Motion utilities ---------------------------------------------------- */
+
+@keyframes jm-rise {
+  from { opacity: 0; transform: translateY(14px) scale(0.985); }
+  to   { opacity: 1; transform: none; }
+}
+@keyframes jm-fade {
+  from { opacity: 0; }
+  to   { opacity: 1; }
+}
+@keyframes jm-slide-in {
+  from { opacity: 0; transform: translateX(-10px); }
+  to   { opacity: 1; transform: none; }
+}
+@keyframes jm-shimmer {
+  100% { transform: translateX(100%); }
+}
+
+/* Springy entrance (back.out-style overshoot) for page/list reveals. */
+.animate-rise {
+  opacity: 0;
+  animation: jm-rise 480ms cubic-bezier(0.22, 1.2, 0.36, 1) both;
+}
+.animate-fade {
+  opacity: 0;
+  animation: jm-fade 400ms ease both;
+}
+.animate-slide-in {
+  opacity: 0;
+  animation: jm-slide-in 420ms cubic-bezier(0.22, 1.2, 0.36, 1) both;
+}
+
+/* Hover-lift for cards and rows. */
+.hover-lift {
+  transition: transform 200ms cubic-bezier(0.22, 1, 0.36, 1),
+    box-shadow 200ms ease, border-color 160ms ease;
+  will-change: transform;
+}
+.hover-lift:hover {
+  transform: translateY(-3px);
+  box-shadow: 0 12px 28px -10px rgba(0, 0, 0, 0.55);
+  border-color: var(--accent);
+}
+
+/* Skeleton shimmer for loading states. */
+.shimmer { position: relative; overflow: hidden; }
+.shimmer::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  transform: translateX(-100%);
+  background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.05), transparent);
+  animation: jm-shimmer 1.5s infinite;
+}
+
+/* Respect reduced-motion — neutralize every animation/transition and the
+   reveal/press utilities so nothing moves for users who opt out. */
 @media (prefers-reduced-motion: reduce) {
   *, *::before, *::after {
-    animation-duration: 0.01ms !important;
+    animation-duration: 0.001ms !important;
     animation-iteration-count: 1 !important;
-    transition-duration: 0.01ms !important;
+    transition-duration: 0.001ms !important;
+    scroll-behavior: auto !important;
   }
+  .animate-rise, .animate-fade, .animate-slide-in {
+    opacity: 1 !important;
+    transform: none !important;
+  }
+  .hover-lift:hover { transform: none; }
+  button:not(:disabled):active { transform: none; }
 }

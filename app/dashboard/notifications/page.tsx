@@ -113,13 +113,14 @@ export default function NotificationsPage() {
             </p>
           </div>
         ) : (
-          items.map(item => (
-            <div key={item.id} onClick={() => openEmail(item)} style={{
+          items.map((item, i) => (
+            <div key={item.id} onClick={() => openEmail(item)} className="animate-rise" style={{
               background: 'var(--bg-surface)', border: '1px solid var(--border)',
               borderRadius: 10, padding: '16px 18px', cursor: 'pointer',
               display: 'flex', alignItems: 'flex-start', gap: 14,
               borderLeft: item.is_phishing ? '3px solid #ef4444' : '3px solid var(--accent)',
               transition: 'border-color 0.15s, background 0.15s',
+              animationDelay: `${Math.min(i * 40, 320)}ms`,
             }}
               onMouseEnter={e => e.currentTarget.style.background = 'var(--bg-elevated)'}
               onMouseLeave={e => e.currentTarget.style.background = 'var(--bg-surface)'}

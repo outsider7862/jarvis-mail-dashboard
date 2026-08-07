@@ -164,7 +164,7 @@ function SettingsPageInner() {
       }}>
 
         {/* Account info */}
-        <div style={{
+        <div className="animate-rise" style={{
           background: 'var(--bg-surface)', border: '1px solid var(--border)',
           borderRadius: 12, padding: '20px 24px',
           display: 'flex', flexDirection: 'column', gap: 16,
@@ -188,9 +188,10 @@ function SettingsPageInner() {
         </div>
 
         {/* Profile — feeds the AI's summaries */}
-        <div style={{
+        <div className="animate-rise" style={{
           background: 'var(--bg-surface)', border: '1px solid var(--border)',
           borderRadius: 12, padding: '20px 24px',
+          animationDelay: '60ms',
           display: 'flex', flexDirection: 'column', gap: 16,
         }}>
           <div>
@@ -269,9 +270,10 @@ function SettingsPageInner() {
         </div>
 
         {/* Connected inboxes */}
-        <div style={{
+        <div className="animate-rise" style={{
           background: 'var(--bg-surface)', border: '1px solid var(--border)',
           borderRadius: 12, padding: '20px 24px',
+          animationDelay: '120ms',
           display: 'flex', flexDirection: 'column', gap: 12,
         }}>
           <h3 style={{ fontSize: 14, fontWeight: 600, color: 'var(--text-primary)' }}>Connected Inboxes</h3>
@@ -366,9 +368,10 @@ function SettingsPageInner() {
         </div>
 
         {/* Privacy — persistent reminder of what was shown at onboarding */}
-        <div style={{
+        <div className="animate-rise" style={{
           background: 'var(--bg-surface)', border: '1px solid var(--border)',
           borderRadius: 12, padding: '20px 24px',
+          animationDelay: '180ms',
           display: 'flex', flexDirection: 'column', gap: 14,
         }}>
           <h3 style={{ fontSize: 14, fontWeight: 600, color: 'var(--text-primary)' }}>Privacy</h3>

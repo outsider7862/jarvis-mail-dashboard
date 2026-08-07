@@ -79,16 +79,13 @@ export default function LeadsPage() {
           </div>
         ) : (
           <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(320px, 1fr))', gap: 14 }}>
-            {leads.map(lead => (
-              <div key={lead.id} style={{
+            {leads.map((lead, i) => (
+              <div key={lead.id} className="animate-rise hover-lift" style={{
                 background: 'var(--bg-surface)', border: '1px solid var(--border)',
                 borderRadius: 12, padding: '20px',
                 display: 'flex', flexDirection: 'column', gap: 14,
-                transition: 'border-color 0.15s',
-              }}
-                onMouseEnter={e => e.currentTarget.style.borderColor = 'var(--accent)'}
-                onMouseLeave={e => e.currentTarget.style.borderColor = 'var(--border)'}
-              >
+                animationDelay: `${Math.min(i * 40, 320)}ms`,
+              }}>
                 {/* Header */}
                 <div style={{ display: 'flex', alignItems: 'flex-start', justifyContent: 'space-between' }}>
                   <div>

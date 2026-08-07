@@ -10,15 +10,12 @@ interface StatCardProps {
 
 export function StatCard({ label, value, icon: Icon, iconColor = '#3b82f6', sub }: StatCardProps) {
   return (
-    <div style={{
+    <div className="hover-lift" style={{
+      height: '100%',
       background: 'var(--bg-surface)', border: '1px solid var(--border)',
       borderRadius: 12, padding: '20px 24px',
       display: 'flex', flexDirection: 'column', gap: 12,
-      transition: 'border-color 0.2s',
-    }}
-      onMouseEnter={e => (e.currentTarget.style.borderColor = 'var(--accent)')}
-      onMouseLeave={e => (e.currentTarget.style.borderColor = 'var(--border)')}
-    >
+    }}>
       <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
         <span style={{ color: 'var(--text-secondary)', fontSize: 13, fontWeight: 500 }}>{label}</span>
         <div style={{

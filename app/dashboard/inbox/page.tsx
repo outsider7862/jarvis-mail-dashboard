@@ -436,13 +436,14 @@ function InboxPageInner() {
                 )
               })()
             ) : (
-              emails.map(email => (
-                <div key={email.id} onClick={() => openEmail(email)} style={{
+              emails.map((email, i) => (
+                <div key={email.id} onClick={() => openEmail(email)} className="animate-rise" style={{
                   padding: '14px 20px', cursor: 'pointer',
                   borderBottom: '1px solid var(--border-subtle)',
                   background: selected?.id === email.id ? 'var(--bg-elevated)' : 'transparent',
                   borderLeft: `3px solid ${email.status === 'new' ? 'var(--accent)' : 'transparent'}`,
                   transition: 'background 0.1s',
+                  animationDelay: `${Math.min(i * 22, 260)}ms`,
                 }}
                   onMouseEnter={e => { if (selected?.id !== email.id) e.currentTarget.style.background = 'var(--bg-surface)' }}
                   onMouseLeave={e => { if (selected?.id !== email.id) e.currentTarget.style.background = 'transparent' }}
@@ -516,7 +517,7 @@ function InboxPageInner() {
             opening an email from the bottom of the list left the panel scrolled
             down; a new element always starts at the top. */}
         {selected && (
-          <div key={selected.id} style={{
+          <div key={selected.id} className="animate-fade" style={{
             flex: 1, overflowY: 'auto', minHeight: 0, height: '100%',
             padding: isMobile ? '16px 16px 32px' : '24px 28px',
             display: 'flex', flexDirection: 'column', gap: 20,

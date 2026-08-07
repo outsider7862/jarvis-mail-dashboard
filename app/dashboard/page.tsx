@@ -113,7 +113,7 @@ export default function OverviewPage() {
         )}
 
         {/* Morning brief header */}
-        <div style={{
+        <div className="animate-rise" style={{
           background: 'var(--bg-surface)', border: '1px solid var(--border)',
           borderRadius: 12, padding: isMobile ? '20px' : '24px 28px',
           display: 'flex', alignItems: isMobile ? 'flex-start' : 'center',
@@ -158,8 +158,13 @@ export default function OverviewPage() {
           </div>
         ) : brief ? (
           <div style={{ display: 'grid', gridTemplateColumns: gridCols, gap: 16 }}>
-            {cards.map(card => (
-              <div key={card.label} onClick={() => router.push(card.href)} style={{ cursor: 'pointer' }}>
+            {cards.map((card, i) => (
+              <div
+                key={card.label}
+                onClick={() => router.push(card.href)}
+                className="animate-rise"
+                style={{ cursor: 'pointer', animationDelay: `${i * 45}ms` }}
+              >
                 <StatCard
                   label={card.label}
                   value={card.value}
@@ -176,7 +181,7 @@ export default function OverviewPage() {
 
         {/* Needs attention — the actual items behind the counts */}
         {!loading && attention !== null && (
-          <div style={{
+          <div className="animate-rise" style={{
             background: 'var(--bg-surface)', border: '1px solid var(--border)',
             borderRadius: 12, overflow: 'hidden',
           }}>
@@ -230,7 +235,7 @@ export default function OverviewPage() {
 
         {/* Upcoming events */}
         {!loading && (
-          <div style={{
+          <div className="animate-rise" style={{
             background: 'var(--bg-surface)', border: '1px solid var(--border)',
             borderRadius: 12, padding: '20px 24px',
             display: 'flex', flexDirection: 'column', gap: 14,

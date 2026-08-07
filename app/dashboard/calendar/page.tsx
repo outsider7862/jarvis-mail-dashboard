@@ -110,7 +110,7 @@ export default function CalendarPage() {
 
         {/* Pending AI-detected events */}
         {pending.length > 0 && (
-          <div style={{
+          <div className="animate-rise" style={{
             background: 'var(--accent-subtle)', border: '1px solid rgba(59,130,246,0.35)',
             borderRadius: 12, padding: '18px 20px', display: 'flex', flexDirection: 'column', gap: 12,
           }}>
@@ -173,7 +173,7 @@ export default function CalendarPage() {
 
         <div style={{ display: 'flex', gap: 16, flexDirection: isMobile ? 'column' : 'row' }}>
           {/* Month grid */}
-          <div style={{ flex: 1, minWidth: 0, background: 'var(--bg-surface)', border: '1px solid var(--border)', borderRadius: 12, overflow: 'hidden' }}>
+          <div className="animate-rise" style={{ flex: 1, minWidth: 0, background: 'var(--bg-surface)', border: '1px solid var(--border)', borderRadius: 12, overflow: 'hidden' }}>
             <div style={{ display: 'grid', gridTemplateColumns: 'repeat(7, 1fr)' }}>
               {WEEKDAYS.map(w => (
                 <div key={w} style={{ padding: '10px 0', textAlign: 'center', fontSize: 11, fontWeight: 600, color: 'var(--text-muted)', borderBottom: '1px solid var(--border)' }}>
@@ -227,7 +227,7 @@ export default function CalendarPage() {
 
           {/* Day detail */}
           {selectedDay && (
-            <div style={{
+            <div key={selectedDay} className="animate-slide-in" style={{
               width: isMobile ? '100%' : 320, flexShrink: 0,
               background: 'var(--bg-surface)', border: '1px solid var(--border)', borderRadius: 12,
               padding: '18px 20px', display: 'flex', flexDirection: 'column', gap: 14,
@@ -345,8 +345,8 @@ function EventModal({ existing, defaultDate, onClose, onSaved }: {
 
   return (
     <>
-      <div onClick={onClose} style={{ position: 'fixed', inset: 0, background: 'rgba(0,0,0,0.6)', zIndex: 60, backdropFilter: 'blur(2px)' }} />
-      <div style={{
+      <div className="animate-fade" style={{ position: 'fixed', inset: 0, background: 'rgba(0,0,0,0.6)', zIndex: 60, backdropFilter: 'blur(2px)' }} />
+      <div className="animate-rise" style={{
         position: 'fixed', top: '50%', left: '50%', transform: 'translate(-50%, -50%)',
         width: '100%', maxWidth: 440, zIndex: 61,
         background: 'var(--bg-elevated)', border: '1px solid var(--border)', borderRadius: 14,
