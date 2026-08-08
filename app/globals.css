@@ -5,19 +5,19 @@
 :root {
   color-scheme: dark;
 
-  /* Slate + Emerald — cool blue-grey slate surfaces, layered base/surface/
-     elevated so cards read as lifted, with a single emerald accent. */
-  --bg-base:       #0b0e13;
-  --bg-surface:    #131820;
-  --bg-elevated:   #1c232e;
-  --bg-overlay:    #26303c;
+  /* Moody indigo — deep indigo/violet surfaces, layered base/surface/elevated
+     so cards read as lifted, with a single emerald accent. */
+  --bg-base:       #0a0a16;
+  --bg-surface:    #121220;
+  --bg-elevated:   #1b1b2e;
+  --bg-overlay:    #26263f;
 
-  --border:        #29323f;
-  --border-subtle: #171d25;
+  --border:        #2a2a44;
+  --border-subtle: #191927;
 
-  --text-primary:  #f4f6f8;
-  --text-secondary: #9aa4b0;
-  --text-muted:    #6c7684;
+  --text-primary:  #f3f3f8;
+  --text-secondary: #a2a2b8;
+  --text-muted:    #71718a;
 
   /* Accent — emerald. Too light for white text, so on-accent foreground is a
      deep near-black green here. */
@@ -122,19 +122,13 @@ button:not(:disabled):active,
 @keyframes jm-shimmer {
   100% { transform: translateX(100%); }
 }
-/* Command-palette open: backdrop blurs/fades in, panel springs down from the
-   top with a scale overshoot. Panel keeps translateX(-50%) so it stays
-   horizontally centred throughout. */
+/* Command-palette backdrop blurs/fades in. The panel itself morphs out of the
+   search bar via JS-driven geometry (see TopBar), not a keyframe. */
 @keyframes jm-backdrop-in {
   from { opacity: 0; }
   to   { opacity: 1; }
 }
-@keyframes jm-palette-in {
-  from { opacity: 0; transform: translateX(-50%) translateY(-14px) scale(0.94); }
-  to   { opacity: 1; transform: translateX(-50%) translateY(0) scale(1); }
-}
-.palette-backdrop { animation: jm-backdrop-in 180ms ease both; }
-.palette-panel    { animation: jm-palette-in 300ms cubic-bezier(0.22, 1.3, 0.36, 1) both; }
+.palette-backdrop { animation: jm-backdrop-in 200ms ease both; }
 
 /* Springy entrance (back.out-style overshoot) for page/list reveals. */
 .animate-rise {

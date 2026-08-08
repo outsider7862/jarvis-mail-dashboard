@@ -1,5 +1,5 @@
 'use client'
-import { useEffect, useRef, useState, useCallback } from 'react'
+import { useEffect, useLayoutEffect, useRef, useState, useCallback } from 'react'
 import { useRouter } from 'next/navigation'
 import { Bell, Search, X, Mail, Users, CalendarClock, ShieldAlert, LogOut, User, Settings } from 'lucide-react'
 import { supabase } from '@/lib/supabase'
@@ -23,16 +23,54 @@ const COMMANDS = [
   { label: 'Filter: Phishing',     icon: ShieldAlert,   href: '/dashboard/inbox?is_phishing=true' },
 ]
 
-function CommandPalette({ onClose }: { onClose: () => void }) {
+type Geom = { top: number; left: number; width: number; height: number; radius: number }
+
+function CommandPalette({ onClose, originRef }: {
+  onClose: () => void
+  originRef?: React.RefObject<HTMLButtonElement | null>
+}) {
   const [query, setQuery] = useState('')
   const [idx, setIdx]     = useState(0)
   const router            = useRouter()
   const inputRef          = useRef<HTMLInputElement>(null)
+  const contentRef        = useRef<HTMLDivElement>(null)
+  // Geometry morph: the panel grows out of the search bar's rect into its full
+  // size. `geom` null until measured (kept hidden), then set to the bar rect,
+  // then rAF-flipped to the final rect so CSS transitions the difference.
+  const [geom, setGeom]         = useState<Geom | null>(null)
+  const [contentIn, setContentIn] = useState(false)
+  const [settled, setSettled]     = useState(false)
 
   const filtered = COMMANDS.filter(c => c.label.toLowerCase().includes(query.toLowerCase()))
 
-  useEffect(() => { inputRef.current?.focus() }, [])
   useEffect(() => { setIdx(0) }, [query])
+
+  // Drive the open morph once, before first paint.
+  useLayoutEffect(() => {
+    const W = Math.min(520, window.innerWidth - 32)
+    const contentH = contentRef.current?.offsetHeight ?? 420
+    const finalTop  = Math.round(window.innerHeight * 0.2)
+    const finalLeft = Math.round((window.innerWidth - W) / 2)
+    const final: Geom = { top: finalTop, left: finalLeft, width: W, height: contentH, radius: 14 }
+
+    const reduce = window.matchMedia('(prefers-reduced-motion: reduce)').matches
+    const bar = originRef?.current?.getBoundingClientRect()
+
+    if (reduce || !bar) {
+      setGeom(final); setContentIn(true); setSettled(true)
+      requestAnimationFrame(() => inputRef.current?.focus())
+      return
+    }
+
+    // Start at the search bar, then flip to final on the next frame.
+    setGeom({ top: bar.top, left: bar.left, width: bar.width, height: bar.height, radius: 10 })
+    const id = requestAnimationFrame(() => requestAnimationFrame(() => {
+      setGeom(final)
+      setContentIn(true)
+      inputRef.current?.focus({ preventScroll: true })
+    }))
+    return () => cancelAnimationFrame(id)
+  }, [originRef])
 
   function go(href: string) { router.push(href); onClose() }
 
@@ -43,6 +81,20 @@ function CommandPalette({ onClose }: { onClose: () => void }) {
     if (e.key === 'Escape') onClose()
   }
 
+  const EASE = 'cubic-bezier(0.22, 1, 0.36, 1)'
+  const panelStyle: React.CSSProperties = {
+    position: 'fixed', zIndex: 51,
+    background: 'var(--bg-elevated)', border: '1px solid var(--border)',
+    boxShadow: '0 24px 48px rgba(0,0,0,0.5)',
+    overflow: settled ? 'visible' : 'hidden',
+    transition: settled ? 'none'
+      : `top 360ms ${EASE}, left 360ms ${EASE}, width 360ms ${EASE}, height 360ms ${EASE}, border-radius 300ms ease`,
+    ...(geom
+      ? { top: geom.top, left: geom.left, width: geom.width,
+          height: settled ? 'auto' : geom.height, borderRadius: geom.radius, visibility: 'visible' }
+      : { top: '20%', left: '50%', width: 'min(520px, calc(100vw - 32px))', visibility: 'hidden' }),
+  }
+
   return (
     <>
       {/* Backdrop */}
@@ -51,74 +103,76 @@ function CommandPalette({ onClose }: { onClose: () => void }) {
         zIndex: 50, backdropFilter: 'blur(2px)',
       }} />
 
-      {/* Panel */}
-      <div className="palette-panel" style={{
-        position: 'fixed', top: '20%', left: '50%', transform: 'translateX(-50%)',
-        width: '100%', maxWidth: 520, zIndex: 51,
-        background: 'var(--bg-elevated)', border: '1px solid var(--border)',
-        borderRadius: 14, overflow: 'hidden',
-        boxShadow: '0 24px 48px rgba(0,0,0,0.5)',
-      }}>
-        {/* Search input */}
-        <div style={{
-          display: 'flex', alignItems: 'center', gap: 10,
-          padding: '14px 16px', borderBottom: '1px solid var(--border)',
+      {/* Panel — morphs out of the search bar */}
+      <div
+        style={panelStyle}
+        onTransitionEnd={e => { if (e.propertyName === 'height') setSettled(true) }}
+      >
+        <div ref={contentRef} style={{
+          opacity: contentIn ? 1 : 0,
+          transition: 'opacity 240ms ease 60ms',
         }}>
-          <Search size={16} color="var(--text-muted)" />
-          <input
-            ref={inputRef}
-            value={query} onChange={e => setQuery(e.target.value)}
-            onKeyDown={onKey}
-            placeholder="Search commands..."
-            style={{
-              flex: 1, background: 'none', border: 'none', outline: 'none',
-              color: 'var(--text-primary)', fontSize: 15,
-            }}
-          />
-          <button onClick={onClose} style={{
-            background: 'none', border: 'none', cursor: 'pointer',
-            color: 'var(--text-muted)', display: 'flex', padding: 0,
+          {/* Search input */}
+          <div style={{
+            display: 'flex', alignItems: 'center', gap: 10,
+            padding: '14px 16px', borderBottom: '1px solid var(--border)',
           }}>
-            <X size={16} />
-          </button>
-        </div>
-
-        {/* Results */}
-        <div style={{ maxHeight: 320, overflowY: 'auto', padding: '6px' }}>
-          {filtered.length === 0 ? (
-            <p style={{ padding: '16px', textAlign: 'center', color: 'var(--text-muted)', fontSize: 13 }}>
-              No commands found
-            </p>
-          ) : filtered.map((cmd, i) => (
-            <button key={cmd.href} onClick={() => go(cmd.href)} style={{
-              width: '100%', display: 'flex', alignItems: 'center', gap: 12,
-              padding: '10px 12px', borderRadius: 8, border: 'none', cursor: 'pointer',
-              background: i === idx ? 'var(--bg-overlay)' : 'transparent',
-              color: i === idx ? 'var(--text-primary)' : 'var(--text-secondary)',
-              fontSize: 14, textAlign: 'left', transition: 'background 0.1s',
-            }}
-              onMouseEnter={() => setIdx(i)}
-            >
-              <cmd.icon size={15} />
-              {cmd.label}
+            <Search size={16} color="var(--text-muted)" />
+            <input
+              ref={inputRef}
+              value={query} onChange={e => setQuery(e.target.value)}
+              onKeyDown={onKey}
+              placeholder="Search commands..."
+              style={{
+                flex: 1, background: 'none', border: 'none', outline: 'none',
+                color: 'var(--text-primary)', fontSize: 15,
+              }}
+            />
+            <button onClick={onClose} style={{
+              background: 'none', border: 'none', cursor: 'pointer',
+              color: 'var(--text-muted)', display: 'flex', padding: 0,
+            }}>
+              <X size={16} />
             </button>
-          ))}
-        </div>
+          </div>
 
-        <div style={{
-          padding: '8px 16px', borderTop: '1px solid var(--border)',
-          display: 'flex', gap: 16,
-        }}>
-          {[['↑↓', 'navigate'], ['↵', 'select'], ['esc', 'close']].map(([key, desc]) => (
-            <span key={key} style={{ display: 'flex', alignItems: 'center', gap: 5, fontSize: 11, color: 'var(--text-muted)' }}>
-              <kbd style={{
-                padding: '1px 6px', borderRadius: 4, fontSize: 11,
-                background: 'var(--bg-overlay)', border: '1px solid var(--border)',
-                color: 'var(--text-secondary)',
-              }}>{key}</kbd>
-              {desc}
-            </span>
-          ))}
+          {/* Results */}
+          <div style={{ maxHeight: 320, overflowY: 'auto', padding: '6px' }}>
+            {filtered.length === 0 ? (
+              <p style={{ padding: '16px', textAlign: 'center', color: 'var(--text-muted)', fontSize: 13 }}>
+                No commands found
+              </p>
+            ) : filtered.map((cmd, i) => (
+              <button key={cmd.href} onClick={() => go(cmd.href)} style={{
+                width: '100%', display: 'flex', alignItems: 'center', gap: 12,
+                padding: '10px 12px', borderRadius: 8, border: 'none', cursor: 'pointer',
+                background: i === idx ? 'var(--bg-overlay)' : 'transparent',
+                color: i === idx ? 'var(--text-primary)' : 'var(--text-secondary)',
+                fontSize: 14, textAlign: 'left', transition: 'background 0.1s',
+              }}
+                onMouseEnter={() => setIdx(i)}
+              >
+                <cmd.icon size={15} />
+                {cmd.label}
+              </button>
+            ))}
+          </div>
+
+          <div style={{
+            padding: '8px 16px', borderTop: '1px solid var(--border)',
+            display: 'flex', gap: 16,
+          }}>
+            {[['↑↓', 'navigate'], ['↵', 'select'], ['esc', 'close']].map(([key, desc]) => (
+              <span key={key} style={{ display: 'flex', alignItems: 'center', gap: 5, fontSize: 11, color: 'var(--text-muted)' }}>
+                <kbd style={{
+                  padding: '1px 6px', borderRadius: 4, fontSize: 11,
+                  background: 'var(--bg-overlay)', border: '1px solid var(--border)',
+                  color: 'var(--text-secondary)',
+                }}>{key}</kbd>
+                {desc}
+              </span>
+            ))}
+          </div>
         </div>
       </div>
     </>
@@ -332,6 +386,7 @@ export function TopBar({ title }: { title: string }) {
   const [showNotifs, setShowNotifs]     = useState(false)
   const [showProfile, setShowProfile]   = useState(false)
   const [notifCount, setNotifCount]     = useState(0)
+  const searchBtnRef                    = useRef<HTMLButtonElement>(null)
 
   useEffect(() => {
     supabase.auth.getUser().then(({ data }) => {
@@ -401,7 +456,7 @@ export function TopBar({ title }: { title: string }) {
         {/* Centered search / command palette trigger — a real search-bar look
             (label left, ⌘K right); collapses to an icon on mobile, where the
             "⌘K" hint is meaningless and the bar is tight. */}
-        <button onClick={() => setShowPalette(true)} aria-label="Search" className="hover-lift" style={{
+        <button ref={searchBtnRef} onClick={() => setShowPalette(true)} aria-label="Search" className="hover-lift" style={{
           justifySelf: 'center',
           display: 'flex', alignItems: 'center', gap: 8,
           padding: isMobile ? 0 : '8px 14px',
@@ -480,7 +535,7 @@ export function TopBar({ title }: { title: string }) {
       </header>
 
       {/* Command palette rendered outside header so it's not clipped */}
-      {showPalette && <CommandPalette onClose={() => setShowPalette(false)} />}
+      {showPalette && <CommandPalette onClose={() => setShowPalette(false)} originRef={searchBtnRef} />}
     </>
   )
 }
