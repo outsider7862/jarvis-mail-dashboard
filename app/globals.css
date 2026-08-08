@@ -5,26 +5,26 @@
 :root {
   color-scheme: dark;
 
-  /* Slate + Emerald — cool blue-grey slate surfaces, layered base/surface/
-     elevated so cards read as lifted, with a single emerald accent. */
-  --bg-base:       #0b0e13;
-  --bg-surface:    #131820;
-  --bg-elevated:   #1c232e;
-  --bg-overlay:    #26303c;
+  /* Pure black (OLED) base with near-black surfaces lifted just enough that
+     cards read as raised, plus a single electric-cyan accent. */
+  --bg-base:       #000000;
+  --bg-surface:    #0b0b0d;
+  --bg-elevated:   #141417;
+  --bg-overlay:    #1d1d21;
 
-  --border:        #29323f;
-  --border-subtle: #171d25;
+  --border:        #26262b;
+  --border-subtle: #161619;
 
-  --text-primary:  #f4f6f8;
-  --text-secondary: #9aa4b0;
-  --text-muted:    #6c7684;
+  --text-primary:  #f5f5f6;
+  --text-secondary: #a1a1aa;
+  --text-muted:    #6f6f78;
 
-  /* Accent — emerald. Too light for white text, so on-accent foreground is a
-     deep near-black green here. */
-  --accent:        #10b981;
-  --accent-hover:  #059669;
-  --accent-subtle: rgba(16, 185, 129, 0.15);
-  --on-accent:     #04231a;
+  /* Accent — electric cyan. Too light for white text, so on-accent foreground
+     is a deep near-black cyan here. */
+  --accent:        #22d3ee;
+  --accent-hover:  #06b6d4;
+  --accent-subtle: rgba(34, 211, 238, 0.15);
+  --on-accent:     #042f36;
 
   /* Semantic colours for category badges */
   --lead:     #22c55e;
@@ -56,11 +56,11 @@
   --text-secondary: #47535f;
   --text-muted:    #6b7684;
 
-  /* Deeper emerald so accent text/buttons keep contrast on white; white reads
-     fine on this darker green, so on-accent is white in light mode. */
-  --accent:        #047857;
-  --accent-hover:  #065f46;
-  --accent-subtle: rgba(4, 120, 87, 0.10);
+  /* Deeper cyan so accent text/buttons keep contrast on white; white reads
+     fine on this darker cyan, so on-accent is white in light mode. */
+  --accent:        #0e7490;
+  --accent-hover:  #155e75;
+  --accent-subtle: rgba(14, 116, 144, 0.10);
   --on-accent:     #ffffff;
 
   --shimmer:       rgba(0, 0, 0, 0.05);
