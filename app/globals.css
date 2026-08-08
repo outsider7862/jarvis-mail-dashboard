@@ -5,19 +5,19 @@
 :root {
   color-scheme: dark;
 
-  /* Pure black (OLED) base with near-black surfaces lifted just enough that
+  /* Warm stone near-black (TechHire-style), surfaces lifted just enough that
      cards read as raised, plus a single electric-cyan accent. */
-  --bg-base:       #000000;
-  --bg-surface:    #0b0b0d;
-  --bg-elevated:   #141417;
-  --bg-overlay:    #1d1d21;
+  --bg-base:       #0a0807;
+  --bg-surface:    #15120e;
+  --bg-elevated:   #1e1a15;
+  --bg-overlay:    #28221b;
 
-  --border:        #26262b;
-  --border-subtle: #161619;
+  --border:        #2a251f;
+  --border-subtle: #16130f;
 
-  --text-primary:  #f5f5f6;
-  --text-secondary: #a1a1aa;
-  --text-muted:    #6f6f78;
+  --text-primary:  #faf9f7;
+  --text-secondary: #a8a29e;
+  --text-muted:    #78716c;
 
   /* Accent — electric cyan. Too light for white text, so on-accent foreground
      is a deep near-black cyan here. */
