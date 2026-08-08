@@ -5,15 +5,15 @@
 :root {
   color-scheme: dark;
 
-  /* Deeper, more layered dark — clearer separation between base/surface/
-     elevated so cards read as lifted rather than flat. */
-  --bg-base:       #090b11;
-  --bg-surface:    #13161f;
-  --bg-elevated:   #1c2029;
-  --bg-overlay:    #272c38;
+  /* Indigo Night — a deeper, intentional indigo/violet dark rather than a flat
+     grey-blue. Layered base/surface/elevated so cards read as lifted. */
+  --bg-base:       #0b0a14;
+  --bg-surface:    #14131f;
+  --bg-elevated:   #1e1c2b;
+  --bg-overlay:    #282536;
 
-  --border:        #2b303d;
-  --border-subtle: #1e232d;
+  --border:        #2c2942;
+  --border-subtle: #1a1826;
 
   --text-primary:  #f5f6f8;
   --text-secondary: #a6a9b4;
