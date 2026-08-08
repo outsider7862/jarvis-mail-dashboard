@@ -64,7 +64,7 @@ export function Sidebar({ mobile = false, onNavigate, collapsed = false, onToggl
           width: 30, height: 30, borderRadius: 8, flexShrink: 0,
           background: 'var(--accent)', display: 'flex', alignItems: 'center', justifyContent: 'center',
         }}>
-          <Zap size={17} color="#fff" strokeWidth={2.5} />
+          <Zap size={17} color="var(--on-accent)" strokeWidth={2.5} />
         </div>
         {!isCollapsed && (
           <span className="animate-fade" style={{

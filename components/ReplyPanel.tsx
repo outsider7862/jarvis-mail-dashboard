@@ -161,7 +161,7 @@ export function ReplyPanel({ analysis, sender, connectedEmail }: {
       <button onClick={openReply} style={{
         display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 8,
         padding: '11px', borderRadius: 8, border: 'none', cursor: 'pointer', width: '100%',
-        background: 'var(--accent)', color: '#fff', fontSize: 13, fontWeight: 600,
+        background: 'var(--accent)', color: 'var(--on-accent)', fontSize: 13, fontWeight: 600,
         transition: 'background 0.15s',
       }}
         onMouseEnter={e => e.currentTarget.style.background = 'var(--accent-hover)'}
@@ -269,7 +269,7 @@ export function ReplyPanel({ analysis, sender, connectedEmail }: {
                 flex: 1,
                 display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 6,
                 padding: '10px', borderRadius: 8, textDecoration: 'none',
-                background: '#22c55e', color: '#fff', fontSize: 13, fontWeight: 600,
+                background: '#22c55e', color: 'var(--on-accent)', fontSize: 13, fontWeight: 600,
               }}
             >
               Open in Gmail to send <ExternalLink size={13} />
@@ -365,7 +365,7 @@ export function ReplyPanel({ analysis, sender, connectedEmail }: {
               padding: '10px', borderRadius: 8, border: 'none',
               cursor: (!intent.trim() || drafting) ? 'not-allowed' : 'pointer',
               background: (!intent.trim() || drafting) ? 'var(--bg-elevated)' : 'var(--accent)',
-              color: (!intent.trim() || drafting) ? 'var(--text-muted)' : '#fff',
+              color: (!intent.trim() || drafting) ? 'var(--text-muted)' : 'var(--on-accent)',
               fontSize: 13, fontWeight: 600,
             }}
           >

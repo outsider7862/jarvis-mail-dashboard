@@ -179,7 +179,7 @@ function SettingsPageInner() {
             <div style={{
               width: 48, height: 48, borderRadius: '50%',
               background: 'var(--accent)', display: 'flex', alignItems: 'center', justifyContent: 'center',
-              fontSize: 18, fontWeight: 700, color: '#fff',
+              fontSize: 18, fontWeight: 700, color: 'var(--on-accent)',
             }}>
               {email ? email[0].toUpperCase() : '?'}
             </div>
@@ -265,7 +265,7 @@ function SettingsPageInner() {
                 <button onClick={saveProfile} disabled={savingProfile} style={{
                   padding: '9px 18px', borderRadius: 8, border: 'none',
                   cursor: savingProfile ? 'not-allowed' : 'pointer',
-                  background: 'var(--accent)', color: '#fff', fontSize: 13, fontWeight: 600,
+                  background: 'var(--accent)', color: 'var(--on-accent)', fontSize: 13, fontWeight: 600,
                   opacity: savingProfile ? 0.6 : 1,
                 }}>
                   {savingProfile ? 'Saving...' : 'Save profile'}
@@ -363,7 +363,7 @@ function SettingsPageInner() {
                 padding: '9px 16px', borderRadius: 8, border: 'none',
                 cursor: connecting ? 'not-allowed' : 'pointer',
                 background: connecting ? 'var(--bg-elevated)' : 'var(--accent)',
-                color: connecting ? 'var(--text-muted)' : '#fff',
+                color: connecting ? 'var(--text-muted)' : 'var(--on-accent)',
                 fontSize: 13, fontWeight: 600,
               }}>
                 {connecting ? 'Redirecting...' : 'Connect Gmail'}

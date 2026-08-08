@@ -271,7 +271,7 @@ function ProfileDropdown({ email, onClose }: { email: string; onClose: () => voi
           <div style={{
             width: 36, height: 36, borderRadius: '50%',
             background: 'var(--accent)', display: 'flex', alignItems: 'center',
-            justifyContent: 'center', fontSize: 14, fontWeight: 700, color: '#fff', flexShrink: 0,
+            justifyContent: 'center', fontSize: 14, fontWeight: 700, color: 'var(--on-accent)', flexShrink: 0,
           }}>
             {email ? email[0].toUpperCase() : '?'}
           </div>
@@ -461,7 +461,7 @@ export function TopBar({ title }: { title: string }) {
               width: 36, height: 36, borderRadius: '50%',
               background: 'var(--accent)', display: 'flex',
               alignItems: 'center', justifyContent: 'center',
-              fontSize: 13, fontWeight: 700, color: '#fff',
+              fontSize: 13, fontWeight: 700, color: 'var(--on-accent)',
               cursor: 'pointer', border: showProfile ? '2px solid rgba(255,255,255,0.4)' : '2px solid transparent',
               transition: 'all 0.16s',
             }}>

@@ -184,7 +184,7 @@ export default function CalendarPage() {
           <button onClick={() => setShowAdd(true)} style={{
             display: 'flex', alignItems: 'center', gap: 6,
             padding: '9px 16px', borderRadius: 8, border: 'none', cursor: 'pointer',
-            background: 'var(--accent)', color: '#fff', fontSize: 13, fontWeight: 600,
+            background: 'var(--accent)', color: 'var(--on-accent)', fontSize: 13, fontWeight: 600,
           }}>
             <Plus size={15} /> Add event
           </button>
@@ -223,7 +223,7 @@ export default function CalendarPage() {
                   >
                     <span style={{
                       fontSize: 12, fontWeight: isToday ? 700 : 500, alignSelf: 'flex-start',
-                      color: isToday ? '#fff' : 'var(--text-secondary)',
+                      color: isToday ? 'var(--on-accent)' : 'var(--text-secondary)',
                       background: isToday ? 'var(--accent)' : 'transparent',
                       borderRadius: '50%', width: 20, height: 20, display: 'flex', alignItems: 'center', justifyContent: 'center',
                     }}>
@@ -431,7 +431,7 @@ function EventModal({ existing, defaultDate, onClose, onSaved }: {
           <button onClick={save} disabled={saving} style={{
             padding: '9px 18px', borderRadius: 8, border: 'none',
             cursor: saving ? 'not-allowed' : 'pointer',
-            background: 'var(--accent)', color: '#fff', fontSize: 13, fontWeight: 600, opacity: saving ? 0.6 : 1,
+            background: 'var(--accent)', color: 'var(--on-accent)', fontSize: 13, fontWeight: 600, opacity: saving ? 0.6 : 1,
           }}>
             {saving ? 'Saving...' : existing ? 'Save' : 'Add event'}
           </button>

@@ -167,7 +167,7 @@ export default function OnboardingPage() {
             width: 36, height: 36, borderRadius: 10,
             background: 'var(--accent)', display: 'flex', alignItems: 'center', justifyContent: 'center',
           }}>
-            <Zap size={20} color="#fff" strokeWidth={2.5} />
+            <Zap size={20} color="var(--on-accent)" strokeWidth={2.5} />
           </div>
           <div>
             <div style={{ fontSize: 17, fontWeight: 700, color: 'var(--text-primary)', letterSpacing: '-0.02em' }}>
@@ -343,7 +343,7 @@ function StepBody({ step, value, onChange, onNext, onBack, isLast, saving }: {
 const primaryBtn: React.CSSProperties = {
   display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 8,
   padding: '12px 18px', borderRadius: 8, border: 'none', cursor: 'pointer',
-  background: 'var(--accent)', color: '#fff', fontSize: 14, fontWeight: 600,
+  background: 'var(--accent)', color: 'var(--on-accent)', fontSize: 14, fontWeight: 600,
 }
 
 const secondaryBtn: React.CSSProperties = {

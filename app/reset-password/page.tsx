@@ -95,7 +95,7 @@ export default function ResetPasswordPage() {
             width: 36, height: 36, borderRadius: 10,
             background: 'var(--accent)', display: 'flex', alignItems: 'center', justifyContent: 'center',
           }}>
-            <Zap size={20} color="#fff" strokeWidth={2.5} />
+            <Zap size={20} color="var(--on-accent)" strokeWidth={2.5} />
           </div>
           <div>
             <div style={{ fontSize: 17, fontWeight: 700, color: 'var(--text-primary)', letterSpacing: '-0.02em' }}>
@@ -134,7 +134,7 @@ export default function ResetPasswordPage() {
             </p>
             <button onClick={() => router.push('/login')} style={{
               marginTop: 4, padding: '10px 18px', borderRadius: 8, border: 'none',
-              background: 'var(--accent)', color: '#fff', fontSize: 13, fontWeight: 600,
+              background: 'var(--accent)', color: 'var(--on-accent)', fontSize: 13, fontWeight: 600,
               cursor: 'pointer',
             }}>
               Back to sign in
@@ -189,7 +189,7 @@ export default function ResetPasswordPage() {
                 padding: '11px', borderRadius: 8, border: 'none',
                 cursor: canSubmit ? 'pointer' : 'not-allowed',
                 background: canSubmit ? 'var(--accent)' : 'var(--bg-elevated)',
-                color: canSubmit ? '#fff' : 'var(--text-muted)',
+                color: canSubmit ? 'var(--on-accent)' : 'var(--text-muted)',
                 fontSize: 14, fontWeight: 600,
               }}
             >

@@ -19,10 +19,12 @@
   --text-secondary: #a6a9b4;
   --text-muted:    #74777f;
 
-  /* Accent — single crisp blue, no gradients */
-  --accent:        #3b82f6;
-  --accent-hover:  #2563eb;
-  --accent-subtle: rgba(59, 130, 246, 0.15);
+  /* Accent — vivid cyan, fresh & lively, no gradients. Cyan is too light for
+     white text, so on-accent foreground is a deep near-black teal here. */
+  --accent:        #06b6d4;
+  --accent-hover:  #0891b2;
+  --accent-subtle: rgba(6, 182, 212, 0.15);
+  --on-accent:     #04252b;
 
   /* Semantic colours for category badges */
   --lead:     #22c55e;
@@ -54,10 +56,12 @@
   --text-secondary: #52525b;
   --text-muted:    #6b7280;
 
-  /* Darker blue so accent text/buttons keep contrast on white. */
-  --accent:        #2563eb;
-  --accent-hover:  #1d4ed8;
-  --accent-subtle: rgba(37, 99, 235, 0.10);
+  /* Deeper cyan so accent text/buttons keep contrast on white; white reads
+     fine on this darker teal, so on-accent is white in light mode. */
+  --accent:        #0e7490;
+  --accent-hover:  #155e75;
+  --accent-subtle: rgba(14, 116, 144, 0.10);
+  --on-accent:     #ffffff;
 
   --shimmer:       rgba(0, 0, 0, 0.05);
   --lift-shadow:   rgba(15, 23, 42, 0.14);

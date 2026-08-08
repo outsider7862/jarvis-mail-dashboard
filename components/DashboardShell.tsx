@@ -78,7 +78,7 @@ export function DashboardShell({ children }: { children: React.ReactNode }) {
               boxShadow: '0 6px 20px rgba(0,0,0,0.45)',
             }}
           >
-            <Menu size={22} color="#fff" />
+            <Menu size={22} color="var(--on-accent)" />
           </button>
         )}
         {children}

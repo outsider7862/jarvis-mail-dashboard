@@ -3,7 +3,7 @@ import { EventType } from '@/types'
 export const EVENT_COLORS: Record<EventType, string> = {
   meeting: '#a78bfa',
   deadline: '#f59e0b',
-  order: '#06b6d4',
+  order: '#6366f1',
   payment: '#22c55e',
   custom: '#3b82f6',
 }

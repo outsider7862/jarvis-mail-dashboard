@@ -57,7 +57,7 @@ export default function OverviewPage() {
   const cards = brief ? [
     { label: 'Business Leads', value: brief.business_leads, icon: Users, iconColor: '#22c55e', sub: 'Pending your review', href: '/dashboard/inbox?is_business_lead=true' },
     { label: 'Invoices', value: brief.invoices, icon: Receipt, iconColor: '#f59e0b', sub: 'Require action', href: '/dashboard/inbox?is_invoice=true' },
-    { label: 'Orders', value: brief.orders, icon: Package, iconColor: '#06b6d4', sub: 'Shipping & receipts', href: '/dashboard/inbox?is_order=true' },
+    { label: 'Orders', value: brief.orders, icon: Package, iconColor: '#6366f1', sub: 'Shipping & receipts', href: '/dashboard/inbox?is_order=true' },
     { label: 'Meetings Today', value: brief.meetings_today, icon: CalendarClock, iconColor: '#a78bfa', sub: 'In the last 24h', href: '/dashboard/inbox?is_meeting=true' },
     { label: 'Follow-ups', value: brief.follow_ups, icon: ListTodo, iconColor: '#38bdf8', sub: 'Unresolved items', href: '/dashboard/inbox' },
     { label: 'OTPs', value: brief.otps, icon: KeyRound, iconColor: '#8b5cf6', sub: 'Verification codes', href: '/dashboard/inbox?is_otp=true' },
@@ -87,7 +87,7 @@ export default function OverviewPage() {
                 width: 40, height: 40, borderRadius: 10, flexShrink: 0,
                 background: 'var(--accent)', display: 'flex', alignItems: 'center', justifyContent: 'center',
               }}>
-                <Mail size={20} color="#fff" />
+                <Mail size={20} color="var(--on-accent)" />
               </div>
               <div>
                 <p style={{ fontSize: 14, fontWeight: 600, color: 'var(--text-primary)' }}>
@@ -101,7 +101,7 @@ export default function OverviewPage() {
             <button onClick={() => router.push('/dashboard/settings')} style={{
               display: 'flex', alignItems: 'center', gap: 8, flexShrink: 0,
               padding: '10px 18px', borderRadius: 8, border: 'none', cursor: 'pointer',
-              background: 'var(--accent)', color: '#fff', fontSize: 13, fontWeight: 600,
+              background: 'var(--accent)', color: 'var(--on-accent)', fontSize: 13, fontWeight: 600,
               transition: 'background 0.15s',
             }}
               onMouseEnter={e => e.currentTarget.style.background = 'var(--accent-hover)'}

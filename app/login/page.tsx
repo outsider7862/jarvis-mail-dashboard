@@ -104,7 +104,7 @@ export default function LoginPage() {
             width: 36, height: 36, borderRadius: 10,
             background: 'var(--accent)', display: 'flex', alignItems: 'center', justifyContent: 'center',
           }}>
-            <Zap size={20} color="#fff" strokeWidth={2.5} />
+            <Zap size={20} color="var(--on-accent)" strokeWidth={2.5} />
           </div>
           <div>
             <div style={{ fontSize: 17, fontWeight: 700, color: 'var(--text-primary)', letterSpacing: '-0.02em' }}>
@@ -213,7 +213,7 @@ export default function LoginPage() {
           padding: '11px', borderRadius: 8, border: 'none',
           cursor: canSubmit ? 'pointer' : 'not-allowed',
           background: canSubmit ? 'var(--accent)' : 'var(--bg-elevated)',
-          color: canSubmit ? '#fff' : 'var(--text-muted)',
+          color: canSubmit ? 'var(--on-accent)' : 'var(--text-muted)',
           fontSize: 14, fontWeight: 600, transition: 'background 0.15s',
         }}>
           {loading

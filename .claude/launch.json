@@ -6,6 +6,30 @@
       "runtimeExecutable": "npm",
       "runtimeArgs": ["run", "dev"],
       "port": 3000
+    },
+    {
+      "name": "techhire-frontend",
+      "runtimeExecutable": "node",
+      "runtimeArgs": [
+        "D:/GIKI/My Projects/Techhire_frontend/node_modules/next/dist/bin/next",
+        "dev",
+        "D:/GIKI/My Projects/Techhire_frontend",
+        "-p",
+        "3001"
+      ],
+      "port": 3001
+    },
+    {
+      "name": "ask-akram-site",
+      "runtimeExecutable": "node",
+      "runtimeArgs": [
+        "D:/GIKI/My Projects/ask-akram/site/node_modules/next/dist/bin/next",
+        "dev",
+        "D:/GIKI/My Projects/ask-akram/site",
+        "-p",
+        "3002"
+      ],
+      "port": 3002
     }
   ]
 }
