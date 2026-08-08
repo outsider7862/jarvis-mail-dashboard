@@ -46,13 +46,13 @@ function CommandPalette({ onClose }: { onClose: () => void }) {
   return (
     <>
       {/* Backdrop */}
-      <div onClick={onClose} style={{
+      <div onClick={onClose} className="palette-backdrop" style={{
         position: 'fixed', inset: 0, background: 'rgba(0,0,0,0.6)',
         zIndex: 50, backdropFilter: 'blur(2px)',
       }} />
 
       {/* Panel */}
-      <div style={{
+      <div className="palette-panel" style={{
         position: 'fixed', top: '20%', left: '50%', transform: 'translateX(-50%)',
         width: '100%', maxWidth: 520, zIndex: 51,
         background: 'var(--bg-elevated)', border: '1px solid var(--border)',
@@ -386,38 +386,45 @@ export function TopBar({ title }: { title: string }) {
   return (
     <>
       <header style={{
-        height: 60, display: 'flex', alignItems: 'center',
-        justifyContent: 'space-between', padding: isMobile ? '0 16px' : '0 28px',
+        height: 60, display: 'grid',
+        gridTemplateColumns: '1fr auto 1fr', alignItems: 'center', gap: 12,
+        padding: isMobile ? '0 16px' : '0 28px',
         borderBottom: '1px solid var(--border)',
         background: 'var(--bg-surface)',
         position: 'sticky', top: 0, zIndex: 10,
       }}>
-        <h1 style={{ fontSize: 16, fontWeight: 600, color: 'var(--text-primary)' }}>{title}</h1>
+        <h1 style={{
+          fontSize: 16, fontWeight: 600, color: 'var(--text-primary)', justifySelf: 'start',
+          whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis',
+        }}>{title}</h1>
 
-        <div className="animate-fade" style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
+        {/* Centered search / command palette trigger — a real search-bar look
+            (label left, ⌘K right); collapses to an icon on mobile, where the
+            "⌘K" hint is meaningless and the bar is tight. */}
+        <button onClick={() => setShowPalette(true)} aria-label="Search" className="hover-lift" style={{
+          justifySelf: 'center',
+          display: 'flex', alignItems: 'center', gap: 8,
+          padding: isMobile ? 0 : '8px 14px',
+          width: isMobile ? 36 : 'min(360px, 42vw)', height: isMobile ? 36 : undefined,
+          justifyContent: isMobile ? 'center' : 'flex-start',
+          borderRadius: 10,
+          background: 'var(--bg-elevated)', border: '1px solid var(--border)',
+          color: 'var(--text-muted)', fontSize: 13, cursor: 'pointer',
+        }}>
+          <Search size={isMobile ? 16 : 15} />
+          {!isMobile && (
+            <>
+              <span>Search...</span>
+              <span style={{
+                marginLeft: 'auto',
+                padding: '1px 6px', borderRadius: 4, fontSize: 11,
+                background: 'var(--bg-overlay)', border: '1px solid var(--border)',
+              }}>⌘K</span>
+            </>
+          )}
+        </button>
 
-          {/* Search / Command palette trigger — collapses to an icon on mobile,
-              where the "⌘K" hint is meaningless and the bar is tight. */}
-          <button onClick={() => setShowPalette(true)} aria-label="Search" className="hover-lift" style={{
-            display: 'flex', alignItems: 'center', gap: 8,
-            padding: isMobile ? 0 : '6px 12px',
-            width: isMobile ? 36 : undefined, height: isMobile ? 36 : undefined,
-            justifyContent: isMobile ? 'center' : undefined,
-            borderRadius: 8,
-            background: 'var(--bg-elevated)', border: '1px solid var(--border)',
-            color: 'var(--text-muted)', fontSize: 13, cursor: 'pointer',
-          }}>
-            <Search size={isMobile ? 16 : 14} />
-            {!isMobile && (
-              <>
-                <span>Search...</span>
-                <span style={{
-                  padding: '1px 6px', borderRadius: 4, fontSize: 11,
-                  background: 'var(--bg-overlay)', border: '1px solid var(--border)',
-                }}>⌘K</span>
-              </>
-            )}
-          </button>
+        <div className="animate-fade" style={{ display: 'flex', alignItems: 'center', gap: 10, justifySelf: 'end' }}>
 
           {/* Theme toggle */}
           <ThemeToggle />
