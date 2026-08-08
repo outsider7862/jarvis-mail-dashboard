@@ -5,26 +5,26 @@
 :root {
   color-scheme: dark;
 
-  /* Indigo Night — a deeper, intentional indigo/violet dark rather than a flat
-     grey-blue. Layered base/surface/elevated so cards read as lifted. */
-  --bg-base:       #0b0a14;
-  --bg-surface:    #14131f;
-  --bg-elevated:   #1e1c2b;
-  --bg-overlay:    #282536;
+  /* Slate + Emerald — cool blue-grey slate surfaces, layered base/surface/
+     elevated so cards read as lifted, with a single emerald accent. */
+  --bg-base:       #0b0e13;
+  --bg-surface:    #131820;
+  --bg-elevated:   #1c232e;
+  --bg-overlay:    #26303c;
 
-  --border:        #2c2942;
-  --border-subtle: #1a1826;
+  --border:        #29323f;
+  --border-subtle: #171d25;
 
-  --text-primary:  #f5f6f8;
-  --text-secondary: #a6a9b4;
-  --text-muted:    #74777f;
+  --text-primary:  #f4f6f8;
+  --text-secondary: #9aa4b0;
+  --text-muted:    #6c7684;
 
-  /* Accent — vivid cyan, fresh & lively, no gradients. Cyan is too light for
-     white text, so on-accent foreground is a deep near-black teal here. */
-  --accent:        #06b6d4;
-  --accent-hover:  #0891b2;
-  --accent-subtle: rgba(6, 182, 212, 0.15);
-  --on-accent:     #04252b;
+  /* Accent — emerald. Too light for white text, so on-accent foreground is a
+     deep near-black green here. */
+  --accent:        #10b981;
+  --accent-hover:  #059669;
+  --accent-subtle: rgba(16, 185, 129, 0.15);
+  --on-accent:     #04231a;
 
   /* Semantic colours for category badges */
   --lead:     #22c55e;
@@ -44,23 +44,23 @@
 :root[data-theme='light'] {
   color-scheme: light;
 
-  --bg-base:       #f6f7f9;
+  --bg-base:       #f4f6f8;
   --bg-surface:    #ffffff;
-  --bg-elevated:   #f1f3f5;
-  --bg-overlay:    #e7eaee;
+  --bg-elevated:   #eef1f4;
+  --bg-overlay:    #e3e8ed;
 
-  --border:        #e2e5ea;
-  --border-subtle: #eef0f3;
+  --border:        #dde3e9;
+  --border-subtle: #eef1f4;
 
-  --text-primary:  #18181b;
-  --text-secondary: #52525b;
-  --text-muted:    #6b7280;
+  --text-primary:  #101720;
+  --text-secondary: #47535f;
+  --text-muted:    #6b7684;
 
-  /* Deeper cyan so accent text/buttons keep contrast on white; white reads
-     fine on this darker teal, so on-accent is white in light mode. */
-  --accent:        #0e7490;
-  --accent-hover:  #155e75;
-  --accent-subtle: rgba(14, 116, 144, 0.10);
+  /* Deeper emerald so accent text/buttons keep contrast on white; white reads
+     fine on this darker green, so on-accent is white in light mode. */
+  --accent:        #047857;
+  --accent-hover:  #065f46;
+  --accent-subtle: rgba(4, 120, 87, 0.10);
   --on-accent:     #ffffff;
 
   --shimmer:       rgba(0, 0, 0, 0.05);
