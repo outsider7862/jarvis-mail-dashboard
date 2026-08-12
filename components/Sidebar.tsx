@@ -1,13 +1,14 @@
 'use client'
 import Link from 'next/link'
 import { usePathname } from 'next/navigation'
-import { LayoutDashboard, Mail, Users, Bell, Settings, LogOut, Zap, CalendarDays, ChevronLeft } from 'lucide-react'
+import { LayoutDashboard, Mail, Users, Bell, Settings, LogOut, Zap, CalendarDays, ChevronLeft, PenLine } from 'lucide-react'
 import { supabase } from '@/lib/supabase'
 import { useRouter } from 'next/navigation'
 
 const nav = [
   { href: '/dashboard',                label: 'Overview',  icon: LayoutDashboard },
   { href: '/dashboard/inbox',          label: 'Inbox',     icon: Mail },
+  { href: '/dashboard/compose',        label: 'Compose',   icon: PenLine },
   { href: '/dashboard/calendar',       label: 'Calendar',  icon: CalendarDays },
   { href: '/dashboard/leads',          label: 'Leads',     icon: Users },
   { href: '/dashboard/notifications',  label: 'Alerts',    icon: Bell },

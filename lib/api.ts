@@ -121,6 +121,40 @@ export async function rewriteDraft(
   })
 }
 
+export async function composeDraft(
+  token: string,
+  prompt: string,
+  recipient?: string,
+  conversationHistory?: ChatTurn[],
+) {
+  return apiFetch('/api/compose/draft', token, {
+    method: 'POST',
+    body: JSON.stringify({
+      prompt,
+      recipient: recipient || undefined,
+      conversation_history: conversationHistory,
+    }),
+  })
+}
+
+export async function composeRewrite(
+  token: string,
+  currentDraft: string,
+  currentSubject: string,
+  rewriteInstruction: string,
+  conversationHistory?: ChatTurn[],
+) {
+  return apiFetch('/api/compose/rewrite', token, {
+    method: 'POST',
+    body: JSON.stringify({
+      current_draft: currentDraft,
+      current_subject: currentSubject,
+      rewrite_instruction: rewriteInstruction,
+      conversation_history: conversationHistory,
+    }),
+  })
+}
+
 export async function saveReplyFeedback(token: string, data: {
   analysis_id: string
   intent: string
